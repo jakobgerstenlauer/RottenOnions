@@ -18,23 +18,18 @@ d<-read.table(fileName, header=FALSE, sep=";",quote="",
                               stringsAsFactors=FALSE,comment.char="",                   
                               colClasses=col.type)
 names(d)<-header
-d$BadExit   <- as.factor(BadExit)
-d$Port      <- as.factor(Port)
-d$Version   <- as.factor(Version)
-d$Bandwidth <- as.numeric(Bandwidth)
-d$IP        <- as.factor(IP)
+d$BadExit   <- as.factor(d$BadExit)
+d$Port      <- as.factor(d$Port)
+d$Version   <- as.factor(d$Version)
+d$Bandwidth <- as.numeric(d$Bandwidth)
+d$IP        <- as.factor(d$IP)
 
 #How is the distribution of IP addresses? 
-hist(log(table(d$IP)))
-
-#How often was a server labeled as BadExit during this year?
-tapply(d$BadExit,d$IP,sum)[tapply(d$BadExit,d$IP,sum)>0]
-# 217.172.60.111  64.191.56.197 
-# 46            322 
+require("lattice")
+histogram(~log(table(d$IP)))
 
 (bad.ips<-unique(d[d$BadExit==1,4]))
 #[1] "64.191.56.197"  "217.172.60.111"
-
 #Wow, there were only 2 nodes which were labeled bad exit!
 
 #Now let's run this analysis for all years:
@@ -49,21 +44,34 @@ for(year in seq(2008,2017)){
                 colClasses=col.type)
   
   names(d)<-header
-  d$BadExit   <- as.factor(BadExit)
-  d$Port      <- as.factor(Port)
-  d$Version   <- as.factor(Version)
-  d$Bandwidth <- as.numeric(Bandwidth)
-  d$IP        <- as.factor(IP)
+  d$BadExit   <- as.factor(d$BadExit)
+  d$Port      <- as.factor(d$Port)
+  d$Version   <- as.factor(d$Version)
+  d$Bandwidth <- as.numeric(d$Bandwidth)
+  d$IP        <- as.factor(d$IP)
 
   #How is the distribution of IP addresses? 
   setwd(plotDir)
-  plotName<-glue("Histogram_IP_addresses.jpeg")
+  plotName<-glue("Histogram_IP_addresses_",year,".jpeg")
   jpeg(plotName)
-  hist(log(table(d$IP)))
+  require("lattice")
+  histogram(~log(table(d$IP)))
   dev.off()
   
-  (bad.ips<-unique(d[d$BadExit==1,4]))
+  bad.ips<-unique(d[d$BadExit==1,4])
+  print(bad.ips)
+  
+  d.bad<-d[d$BadExit==1,]
+  if(exists("d.bad.old")){
+    d.bad.old<-rbind(d.bad.old,d.bad)  
+  }else{
+    d.bad.old<-d.bad  
+  }
 }
+
+dim(d.bad.old)
+
+
 
 #require("lme4")
 #m1.glmer <- glmer(formula = BadExit ~  Port + Version + Bandwidth + (1 | IP) ,
