@@ -62,12 +62,22 @@ for(year in seq(2008,2017)){
   print(bad.ips)
   
   d.bad<-d[d$BadExit==1,]
-  eval(parse(text=glue("d_",year,"<-d.bad")))
+  #eval(parse(text=glue("d_",year,"<-d.bad")))
+  
+  if(exists("d.bad.old")){
+    d.bad.old<-rbind(d.bad.old,d.bad)  
+  }else{
+    d.bad.old<-d.bad  
+  }
 }
 
 dim(d.bad.old)
+#[1] 79272    18
 
+summary(d.bad.old)
 
+setwd(dataDir)
+write.table(d.bad.old, "BadRelays.txt", row.names=FALSE, sep=";")
 
 #require("lme4")
 #m1.glmer <- glmer(formula = BadExit ~  Port + Version + Bandwidth + (1 | IP) ,
