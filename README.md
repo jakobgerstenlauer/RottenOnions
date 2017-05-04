@@ -4,8 +4,8 @@ Find malicious Tor exit nodes.
 
 ## Downloading and Processing the Data
 ### Data Description
-The data was downloaded from the [CollecTor] (https://collector.torproject.org/) website of the Torproject. 
-
+Data was downloaded from the [CollecTor] (https://collector.torproject.org/) website of the Torproject.
+It describes Tor relay servers and was gather over eleven years from 2007 to 2017. 
 
 https://collector.torproject.org/recent/relay-descriptors/consensuses/2017-05-03-19-00-00-consensus
 
