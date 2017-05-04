@@ -40,11 +40,11 @@ wget --recursive \                     # turn on recursive retrieving
 
 wget -rO- --reject "index.html*" --no-parent --no-host-directories --output-document=- https://collector.torproject.org/archive/relay-descriptors/consensuses/ | less
 
-jakob@jakob-Lenovo-G50-80:~/Documents/UPC/2017/01/DS/project/data/archive$ wget -rO- --reject "index.html*" --no-parent --no-host-directories --output-document=- https://collector.torproject.org/archive/relay-descriptors/consensuses/consensuses-2017-05.tar.xz > logs.txt
+.../UPC/2017/01/DS/project/data/archive$ wget -rO- --reject "index.html*" --no-parent --no-host-directories --output-document=- https://collector.torproject.org/archive/relay-descriptors/consensuses/consensuses-2017-05.tar.xz > logs.txt
 tar -xOzf
 tar -xpvf consensuses-2017-05.tar.xz
 
-jakob@jakob-Lenovo-G50-80:~/Documents/UPC/2017/01/DS/project/data$ tar -xpvf consensuses-2017-05.tar.xz --to-stdout | less 
+.../UPC/2017/01/DS/project/data$ tar -xpvf consensuses-2017-05.tar.xz --to-stdout | less 
 
 
 for file in files do
@@ -63,5 +63,5 @@ done;
 
 
 #Split the file into smaller files (for each year)
-jakob@jakob-Lenovo-G50-80:~/Documents/UPC/2017/01/DS/project/data$ ./SplitLogInfos.awk LogInfos.txt 
+.../UPC/2017/01/DS/project/data$ ./SplitLogInfos.awk LogInfos.txt 
 
