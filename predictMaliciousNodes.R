@@ -55,18 +55,14 @@ for(year in seq(2008,2017)){
   plotName<-glue("Histogram_IP_addresses_",year,".jpeg")
   jpeg(plotName)
   require("lattice")
-  histogram(~log(table(d$IP)))
+  print(histogram(~log(table(d$IP))))
   dev.off()
   
   bad.ips<-unique(d[d$BadExit==1,4])
   print(bad.ips)
   
   d.bad<-d[d$BadExit==1,]
-  if(exists("d.bad.old")){
-    d.bad.old<-rbind(d.bad.old,d.bad)  
-  }else{
-    d.bad.old<-d.bad  
-  }
+  eval(parse(text=glue("d_",year,"<-d.bad")))
 }
 
 dim(d.bad.old)
