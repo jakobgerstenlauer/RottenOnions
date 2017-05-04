@@ -4,12 +4,11 @@ Find malicious Tor exit nodes.
 
 ## Downloading and Processing the Data
 ### Data Description
-Data was downloaded from the [CollecTor] (https://collector.torproject.org/) website of the Torproject.
+Data was downloaded from the [CollecTor] (https://collector.torproject.org/) website of the Tor project.
 It describes Tor relay servers and was gather over eleven years from 2007 to 2017. 
 
-To understand the structure of the data, let's have a look at teh following recent log file:
+To understand the structure of the data, let's have a look at the following recent log file:
 https://collector.torproject.org/recent/relay-descriptors/consensuses/2017-05-03-19-00-00-consensus
-
 
 The following six lines describe one relay server at a given point in time:
 
@@ -29,20 +28,22 @@ IP adress: 50.174.62.220
 port of host: 9001
 
 The second line, starting with "s",contains a list of valid flags. A list of possible flags can be retrieved from the header of the lofg  file.
-s
-Flags: Running Stable V2Dir Valid
+s Running Stable V2Dir Valid
 
 The third line, starting with "v", contains the version of the Tor software running on the server.
-v
-Tor version: 0.2.9.10
+v Tor version: 0.2.9.10
 
 The fourth line, starting with "w", contains the bandwidth in kB of the server.
-w
-Bandwidth:23
+w Bandwidth=23
 
-Archive data:
+The sixth line contains ???
+
+The archived data was obtained ffrom the following folder:
 https://collector.torproject.org/archive/relay-descriptors/consensuses/
-Contains data from 2007-10 to 2017-05 with 20-30 MB per file
+The data was collected from 2007-10 to 2017-05 with 20-30 MB per file.
+
+### Data Processing
+
 
 ```bash
 for year in {2007..2017}; do
@@ -52,7 +53,8 @@ for year in {2007..2017}; do
 		rm consensuses-${year}-${month}.tar.xz
 	done;
 done;
-```
-
 #Split the file into smaller files (for each year)
 data$ ./SplitLogInfos.awk LogInfos.txt 
+```
+
+
