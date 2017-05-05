@@ -32,6 +32,43 @@ histogram(~log(table(d$IP)))
 #[1] "64.191.56.197"  "217.172.60.111"
 #Wow, there were only 2 nodes which were labeled bad exit!
 
+#Read additional data set describing how often the server has changed his fingerprint:
+
+lines<-readLines("CountFingerprints.txt")
+trim.leading <- function (x)  sub("^\\s+", "", x)
+
+getFirstColumn<-function(x){
+  unlist(trim.leading(substr(x, 1, 2)))
+} 
+getSecondColumn<-function(x){
+  unlist(substr(x, 3, 16))
+} 
+count <- as.numeric(sapply(lines,getFirstColumn))
+IP <- as.character(sapply(lines,getSecondColumn))
+d.fp<-data.frame(count,IP)
+#TODO Check how to integrate the data!
+
+N<-dim(d)[2]
+indexes.d <- d$IP %in% d.fp$IP
+table(indexes.d)
+# indexes.d
+# FALSE    TRUE 
+# 2824896  937830 
+
+indexes.dfp <- d.fp$IP %in% d$IP  
+table(indexes.dfp)
+# indexes.dfp
+# FALSE  TRUE 
+# 23877  9721 
+
+ips<-d$IP[indexes]
+d$BadFinger<-rep(1,N)
+d$BadFinger[indexes]<-d.fp[IP==d$IP[i], 1],
+
+for(i in seq(1,N)){
+  d$BadFinger[i] <- ifelse(d$IP[i] %in% d.fp$IP, d.fp[d.fp$IP==d$IP[i], 1], 1)
+}
+
 #Now let's run this analysis for all years:
 for(year in seq(2008,2017)){
 
@@ -60,6 +97,8 @@ for(year in seq(2008,2017)){
   
   bad.ips<-unique(d[d$BadExit==1,4])
   print(bad.ips)
+  
+  #TODO Compare
   
   d.bad<-d[d$BadExit==1,]
   #eval(parse(text=glue("d_",year,"<-d.bad")))
