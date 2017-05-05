@@ -7,6 +7,8 @@ Find malicious Tor exit nodes.
 Data was downloaded from the [CollecTor] (https://collector.torproject.org/) website of the Tor project.
 It describes Tor relay servers and was gather over eleven years from 2007 to 2017. 
 
+A glossary of Tor terminology can be found here: https://gitweb.torproject.org/torspec.git/tree/glossary.txt
+
 To understand the structure of the data, let's have a look at the following recent log file:
 https://collector.torproject.org/recent/relay-descriptors/consensuses/2017-05-03-19-00-00-consensus
 
@@ -32,11 +34,44 @@ date: 2017-05-03 03:10:12
 IP adress: 50.174.62.220
 port of host: 9001
 
+SP nickname SP identity SP digest SP publication SP IP SP ORPort SP DirPort NL
+
+[At start, exactly once.]
+
+"Nickname" is the OR's nickname.  "Identity" is a hash of its identity key, 
+encoded in base64, with trailing equals sign(s) removed.  
+"Digest" is a hash of its most recent descriptor as signed (that is, not 
+including the signature), encoded in base64.
+"Publication" is the publication time of its most recent descriptor, in the form
+YYYY-MM-DD HH:MM:SS, in UTC.  
+"IP" is its current IP address; 
+ORPort is its current OR port, "
+DirPort" is its current directory port, or "0" for "none".
+
 The second line, starting with "s",contains a list of valid flags. A list of possible flags can be retrieved from the header of the lofg  file.
 
 s Running Stable V2Dir Valid
 
 The third line, starting with "v", contains the version of the Tor software running on the server.
+
+SP Flags NL
+
+[Exactly once.]
+
+A series of space-separated status flags, in lexical order (as ASCII byte strings).  
+Currently documented flags are:
+
+"Authority" if the router is a directory authority.
+"BadExit" if the router is believed to be useless as an exit node (because its ISP censors it, because it is behind a restrictive proxy, or for some similar reason).
+"Exit" if the router is more useful for building general-purpose exit circuits than for relay circuits.  The path building algorithm uses this flag; see path-spec.txt.
+"Fast" if the router is suitable for high-bandwidth circuits.
+"Guard" if the router is suitable for use as an entry guard.
+"HSDir" if the router is considered a v2 hidden service directory.
+"NoEdConsensus" if any Ed25519 key in the router's descriptor or microdesriptor does not reflect authority consensus.
+"Stable" if the router is suitable for long-lived circuits.
+"Running" if the router is currently usable. Relays without this flag are omitted from the consensus, and current clients (since 0.2.9.4-alpha) assume that every listed relay has this flag.
+"Valid" if the router has been 'validated'. Clients before 0.2.9.4-alpha would not use routers without this flag by default. Currently, relays without this flag are omitted fromthe consensus, and current (post-0.2.9.4-alpha) clients assume that every listed relay has this flag.
+"V2Dir" if the router implements the v2 directory protocol or higher.
 
 v Tor version: 0.2.9.10
 
@@ -44,7 +79,7 @@ The fourth line, starting with "w", contains the bandwidth in kB of the server.
 
 w Bandwidth=23
 
-The sixth line contains additional information that we did not use.
+The sixth line contains additional concerning the "exit policy" of the relay. Here it is specified which ports (and thus associated internet protocols) can be used for outgoing traffic.
 
 The archived data was obtained from the following folder:
 https://collector.torproject.org/archive/relay-descriptors/consensuses/
@@ -137,5 +172,32 @@ done;
 #Split the file into smaller files (for each year)
 data$ ./SplitLogInfos.awk LogInfos.txt 
 ```
+Extract the exit policy:
+```bash
+for year in {2007..2017}; do
+	for month in 01 02 03 04 05 06 07 08 09 10 11 12; do
+		wget --reject "index.html*" --no-parent --no-host-directories https://collector.torproject.org/archive/relay-descriptors/consensuses/consensuses-${year}-${month}.tar.xz		
+		tar -xpvf consensuses-${year}-${month}.tar.xz --to-stdout | ./extractExitPolicy.awk 
+		rm consensuses-${year}-${month}.tar.xz
+	done;
+done;
+```
+
+### Extracting the Fingerprints
+In order to extract the fingerprints of relay servers we have to access the archive files at:
+https://collector.torproject.org/archive/relay-descriptors/server-descriptors/
 
 
+
+Running everything together in the bash shell: 
+
+```bash
+for year in {2007..2017}; do
+	for month in 01 02 03 04 05 06 07 08 09 10 11 12; do
+		wget --reject "index.html*" --no-parent --no-host-directories https://collector.torproject.org/archive/relay-descriptors/server-descriptors/serve r-descriptors-${year}-${month}.tar.xz		
+		tar -xpvf server-descriptors-${year}-${month}.tar.xz --to-stdout | ./extractFingerprint.awk | sort -k1,13 | uniq  >> LogFingerprints.txt
+		rm server-descriptors-${year}-${month}.tar.xz
+	done;
+done;
+cut -c1-13 LogFingerprints.txt | uniq -c | sort -n -k1,7 > CountFingerprints.txt
+```
