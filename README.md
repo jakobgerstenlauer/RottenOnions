@@ -148,7 +148,5 @@ for year in {2007..2017}; do
 		rm consensuses-${year}-${month}.tar.xz
 	done;
 done;
-#Split the file into smaller files (for each year)
-data$ ./SplitLogInfos.awk LogInfos.txt 
 ```
 
