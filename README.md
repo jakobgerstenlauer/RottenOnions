@@ -201,3 +201,8 @@ for year in {2007..2017}; do
 done;
 cut -c1-13 LogFingerprints.txt | uniq -c | sort -n -k1,7 > CountFingerprints.txt
 ```
+# Retrieving the data from Sybil groups in SybilHunting 
+The files are located in https://nymity.ch/sybilhunting/
+Execute the follow bahs to get all the data from the Sybil groups in a file
+```bash
+```
