@@ -34,11 +34,44 @@ date: 2017-05-03 03:10:12
 IP adress: 50.174.62.220
 port of host: 9001
 
+SP nickname SP identity SP digest SP publication SP IP SP ORPort SP DirPort NL
+
+[At start, exactly once.]
+
+"Nickname" is the OR's nickname.  "Identity" is a hash of its identity key, 
+encoded in base64, with trailing equals sign(s) removed.  
+"Digest" is a hash of its most recent descriptor as signed (that is, not 
+including the signature), encoded in base64.
+"Publication" is the publication time of its most recent descriptor, in the form
+YYYY-MM-DD HH:MM:SS, in UTC.  
+"IP" is its current IP address; 
+ORPort is its current OR port, "
+DirPort" is its current directory port, or "0" for "none".
+
 The second line, starting with "s",contains a list of valid flags. A list of possible flags can be retrieved from the header of the lofg  file.
 
 s Running Stable V2Dir Valid
 
 The third line, starting with "v", contains the version of the Tor software running on the server.
+
+SP Flags NL
+
+[Exactly once.]
+
+A series of space-separated status flags, in lexical order (as ASCII byte strings).  
+Currently documented flags are:
+
+"Authority" if the router is a directory authority.
+"BadExit" if the router is believed to be useless as an exit node (because its ISP censors it, because it is behind a restrictive proxy, or for some similar reason).
+"Exit" if the router is more useful for building general-purpose exit circuits than for relay circuits.  The path building algorithm uses this flag; see path-spec.txt.
+"Fast" if the router is suitable for high-bandwidth circuits.
+"Guard" if the router is suitable for use as an entry guard.
+"HSDir" if the router is considered a v2 hidden service directory.
+"NoEdConsensus" if any Ed25519 key in the router's descriptor or microdesriptor does not reflect authority consensus.
+"Stable" if the router is suitable for long-lived circuits.
+"Running" if the router is currently usable. Relays without this flag are omitted from the consensus, and current clients (since 0.2.9.4-alpha) assume that every listed relay has this flag.
+"Valid" if the router has been 'validated'. Clients before 0.2.9.4-alpha would not use routers without this flag by default. Currently, relays without this flag are omitted fromthe consensus, and current (post-0.2.9.4-alpha) clients assume that every listed relay has this flag.
+"V2Dir" if the router implements the v2 directory protocol or higher.
 
 v Tor version: 0.2.9.10
 
