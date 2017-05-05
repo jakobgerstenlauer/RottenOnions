@@ -7,6 +7,8 @@ Find malicious Tor exit nodes.
 Data was downloaded from the [CollecTor] (https://collector.torproject.org/) website of the Tor project.
 It describes Tor relay servers and was gather over eleven years from 2007 to 2017. 
 
+A glossary of Tor terminology can be found here: https://gitweb.torproject.org/torspec.git/tree/glossary.txt
+
 To understand the structure of the data, let's have a look at the following recent log file:
 https://collector.torproject.org/recent/relay-descriptors/consensuses/2017-05-03-19-00-00-consensus
 
@@ -44,7 +46,7 @@ The fourth line, starting with "w", contains the bandwidth in kB of the server.
 
 w Bandwidth=23
 
-The sixth line contains additional information that we did not use.
+The sixth line contains additional concerning the "exit policy" of the relay. Here it is specified which ports (and thus associated internet protocols) can be used for outgoing traffic.
 
 The archived data was obtained from the following folder:
 https://collector.torproject.org/archive/relay-descriptors/consensuses/
@@ -137,5 +139,16 @@ done;
 #Split the file into smaller files (for each year)
 data$ ./SplitLogInfos.awk LogInfos.txt 
 ```
-
+Extract the exit policy:
+```bash
+for year in {2007..2017}; do
+	for month in 01 02 03 04 05 06 07 08 09 10 11 12; do
+		wget --reject "index.html*" --no-parent --no-host-directories https://collector.torproject.org/archive/relay-descriptors/consensuses/consensuses-${year}-${month}.tar.xz		
+		tar -xpvf consensuses-${year}-${month}.tar.xz --to-stdout | ./extractExitPolicy.awk 
+		rm consensuses-${year}-${month}.tar.xz
+	done;
+done;
+#Split the file into smaller files (for each year)
+data$ ./SplitLogInfos.awk LogInfos.txt 
+```
 
