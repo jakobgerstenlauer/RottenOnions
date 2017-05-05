@@ -161,9 +161,10 @@ Running everything together in the bash shell:
 ```bash
 for year in {2007..2017}; do
 	for month in 01 02 03 04 05 06 07 08 09 10 11 12; do
-		wget --reject "index.html*" --no-parent --no-host-directories https://collector.torproject.org/archive/relay-descriptors/server-descriptors/server-descriptors-${year}-${month}.tar.xz		
-		tar -xpvf server-descriptors-${year}-${month}.tar.xz --to-stdout | ./extractFingerprint.awk >> LogFingerprints.txt
+		wget --reject "index.html*" --no-parent --no-host-directories https://collector.torproject.org/archive/relay-descriptors/server-descriptors/serve r-descriptors-${year}-${month}.tar.xz		
+		tar -xpvf server-descriptors-${year}-${month}.tar.xz --to-stdout | ./extractFingerprint.awk | sort -k1,13 | uniq  >> LogFingerprints.txt
 		rm server-descriptors-${year}-${month}.tar.xz
 	done;
 done;
+cut -c1-13 LogFingerprints.txt | uniq -c > CountFingerprints.txt
 ```
