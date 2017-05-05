@@ -82,4 +82,3 @@ write.table(d.bad.old, "BadRelays.txt", row.names=FALSE, sep=";")
 #require("lme4")
 #m1.glmer <- glmer(formula = BadExit ~  Port + Version + Bandwidth + (1 | IP) ,
 #                  family=binomial(link='logit'), data = d)
-
