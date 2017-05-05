@@ -150,3 +150,20 @@ for year in {2007..2017}; do
 done;
 ```
 
+### Extracting the Fingerprints
+In order to extract the fingerprints of relay servers we have to access the archive files at:
+https://collector.torproject.org/archive/relay-descriptors/server-descriptors/
+
+
+
+Running everything together in the bash shell: 
+
+```bash
+for year in {2007..2017}; do
+	for month in 01 02 03 04 05 06 07 08 09 10 11 12; do
+		wget --reject "index.html*" --no-parent --no-host-directories https://collector.torproject.org/archive/relay-descriptors/server-descriptors/server-descriptors-${year}-${month}.tar.xz		
+		tar -xpvf server-descriptors-${year}-${month}.tar.xz --to-stdout | ./extractFingerprint.awk >> LogFingerprints.txt
+		rm server-descriptors-${year}-${month}.tar.xz
+	done;
+done;
+```
