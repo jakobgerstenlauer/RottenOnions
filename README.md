@@ -230,3 +230,30 @@ echo "Cleaning up the house...."
 rm sybil-groups.tar.bz2
 rm -rf sybil-groups
 ```
+
+For research purproses, we tagged the ip to its corresponding country, using the endpoint proveded by ipinfo.io/
+
+```bash
+#!/bin/bash
+
+urlString="curl ipinfo.io/"
+suffix="/country"
+COUNTER=0
+sep=" "
+
+while read STRING
+do
+    ip=$STRING
+    evalString=$urlString$ip$suffix
+    rai=$($evalString)
+    out=$STRING$sep$rai 
+    echo "$out">>temp.txt
+    COUNTER=$((COUNTER + 1))
+    
+done
+# unique is not needed here, it is just a check to be sure
+sort temp.txt | uniq > taggedips.txt 
+echo "Succesfully tagged $COUNTER countries"
+rm temp.txt
+```
+	
