@@ -205,4 +205,28 @@ cut -c1-13 LogFingerprints.txt | uniq -c | sort -n -k1,7 > CountFingerprints.txt
 The files are located in https://nymity.ch/sybilhunting/
 Execute the follow bahs to get all the data from the Sybil groups in a file
 ```bash
+#!/bin/bash
+wget --reject "index.html*" --no-parent --no-host-directories https://nymity.ch/sybilhunting/sybil-groups.tar.bz2	
+tar -xpvf sybil-groups.tar.bz2
+cwd=$(pwd)
+COUNTER=0
+
+#getting into each folder
+for D in sybil-groups/*; do
+    if [ -d "${D}" ]; then	
+	mkdir ${D}/consensuses
+	tar -xvf ${D}/consensuses.tar -C ${D}/consensuses	
+	for F in ${D}/consensuses/*; do
+		COUNTER=$((COUNTER + 1))
+		# using awk script to retrieve data, in this case ip address
+		$cwd/extractip.awk $F >> IpInfo.txt
+	done	
+    fi
+done
+echo "$COUNTER files succesfully decompressed"
+
+#cleaning up the house
+echo "Cleaning up the house...."
+rm sybil-groups.tar.bz2
+rm -rf sybil-groups
 ```
