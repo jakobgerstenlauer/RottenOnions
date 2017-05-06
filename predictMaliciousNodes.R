@@ -33,10 +33,8 @@ histogram(~log(table(d$IP)))
 #Wow, there were only 2 nodes which were labeled bad exit!
 
 #Read additional data set describing how often the server has changed his fingerprint:
-
 lines<-readLines("CountFingerprints.txt")
 trim.leading <- function (x)  sub("^\\s+", "", x)
-
 getFirstColumn<-function(x){
   unlist(trim.leading(substr(x, 1, 2)))
 } 
@@ -46,28 +44,14 @@ getSecondColumn<-function(x){
 count <- as.numeric(sapply(lines,getFirstColumn))
 IP <- as.character(sapply(lines,getSecondColumn))
 d.fp<-data.frame(count,IP)
-#TODO Check how to integrate the data!
+d<-merge(d, d.fp, by="IP")
 
-N<-dim(d)[2]
-indexes.d <- d$IP %in% d.fp$IP
-table(indexes.d)
-# indexes.d
-# FALSE    TRUE 
-# 2824896  937830 
+table(d$count)
+#1      2      3      4      5      7     11     19 
+#873340  47225  10382   2364   3541      2     23    953 
 
-indexes.dfp <- d.fp$IP %in% d$IP  
-table(indexes.dfp)
-# indexes.dfp
-# FALSE  TRUE 
-# 23877  9721 
+table(d$BadExit)
 
-ips<-d$IP[indexes]
-d$BadFinger<-rep(1,N)
-d$BadFinger[indexes]<-d.fp[IP==d$IP[i], 1],
-
-for(i in seq(1,N)){
-  d$BadFinger[i] <- ifelse(d$IP[i] %in% d.fp$IP, d.fp[d.fp$IP==d$IP[i], 1], 1)
-}
 
 #Now let's run this analysis for all years:
 for(year in seq(2008,2017)){
@@ -87,6 +71,9 @@ for(year in seq(2008,2017)){
   d$Bandwidth <- as.numeric(d$Bandwidth)
   d$IP        <- as.factor(d$IP)
 
+  
+  d<-merge(d, d.fp, by="IP")
+  
   #How is the distribution of IP addresses? 
   setwd(plotDir)
   plotName<-glue("Histogram_IP_addresses_",year,".jpeg")
