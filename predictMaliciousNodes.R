@@ -18,11 +18,17 @@ d<-read.table(fileName, header=FALSE, sep=";",quote="",
                               stringsAsFactors=FALSE,comment.char="",                   
                               colClasses=col.type)
 names(d)<-header
+dim(d)
+#[1] 3762726      18
 d$BadExit   <- as.factor(d$BadExit)
 d$Port      <- as.factor(d$Port)
 d$Version   <- as.factor(d$Version)
 d$Bandwidth <- as.numeric(d$Bandwidth)
 d$IP        <- as.factor(d$IP)
+
+table(d$BadExit)
+# 0       1 
+# 3762358     368 
 
 #How is the distribution of IP addresses? 
 require("lattice")
@@ -44,14 +50,29 @@ getSecondColumn<-function(x){
 count <- as.numeric(sapply(lines,getFirstColumn))
 IP <- as.character(sapply(lines,getSecondColumn))
 d.fp<-data.frame(count,IP)
-d<-merge(d, d.fp, by="IP")
+#perform a left join 
+d<-merge(d, d.fp, by="IP",all.x = TRUE)
+dim(d)
+#[1] 3762726      19
 
-table(d$count)
-#1      2      3      4      5      7     11     19 
-#873340  47225  10382   2364   3541      2     23    953 
+table(d$count, useNA = "always")
+#1       2       3       4       5       7      11      19    <NA> 
+#873340   47225   10382    2364    3541       2      23     953 2824896 
 
-table(d$BadExit)
+#There are 2824896 IPs for which no information about changes of the fingerprint is available from the logfiles.
+#I assume that these are short lived relays. Let's check this assumption:
 
+d.missingFingerprintChange<-d[is.na(d$count),]
+table(d$Stable)
+# 0       1 
+# 2209496 1553230
+table(d.missingFingerprintChange$Stable)
+# 0       1 
+# 1709114 1115782
+
+#Conclusion: No, the assumption is not true, the proportion of stable relays
+#is as high in the subset of relays with missing information about fingerprint changes
+#as for the whole data set!
 
 #Now let's run this analysis for all years:
 for(year in seq(2008,2017)){
