@@ -22,6 +22,7 @@ https://collector.torproject.org/recent/relay-descriptors/consensuses/2017-05-03
 
 The following six lines describe one relay server at a given point in time:
 
+```
 r seele AAoQ1DAR6kkoo19hBAX5K0QztNw vCMD4ZbahM/MbQvO23jaxuafqFE 2017-05-03 03:10:12 50.174.62.220 9001 0
 
 s Running Stable V2Dir Valid
@@ -33,6 +34,8 @@ pr Cons=1-2 Desc=1-2 DirCache=1 HSDir=1 HSIntro=3 HSRend=1-2 Link=1-4 LinkAuth=1
 w Bandwidth=23
 
 p reject 1-65535
+```
+
 
 The first line of each record, starts with "r" and has the following pattern (SP means space, NL stands for newline):
 
