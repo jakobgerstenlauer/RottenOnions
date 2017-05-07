@@ -76,6 +76,7 @@ header<-c("Date","Hour","Name","IP","Port","Version","Bandwidth","Authority","Ba
 col.type<-c(rep("character",4),"integer","character",rep("integer",12))
 
 index<-1
+
 #Now let's run this analysis for all years:
 for(year in seq(2008,2017)){
   msg<-glue("Year: ", year)
@@ -152,6 +153,15 @@ for(year in seq(2008,2017)){
   print(histogram(~d1$count))
   dev.off()
   
+  #Automatically remove inputs without variance:
+  calculate.variance<-function(x){
+    var(as.numeric(x), na.rm = TRUE)
+  }
+  variances<-as.numeric(lapply(d1[,8:18], calculate.variance))
+  positive.variances <-ifelse(is.na(variances),FALSE,variances>0)
+  indices<-c(rep(TRUE,7), positive.variances, rep(TRUE,2)) 
+  d1<-d1[,indices]
+  
   require("gbm")
   #check the number of factors of gbm, only 1024 are allowed!
   d1$Port <- factor(d1$Port)
@@ -176,10 +186,7 @@ for(year in seq(2008,2017)){
                    n.trees = num.trees,#3000
                    data=d1[,names(d)[-c(1:5)]])
   }
-  
-  #TODO automatically remove inputs without variance!
-  #Error in gbm.fit(x, y, offset = offset, distribution = distribution, w = w,  : 
-  #The dataset size is too small or subsampling rate is too large: nTrain*bag.fraction <= n.minobsinnode 
+
   
   #fit the model only for subset of data with data about fingerprint changes
   m1.gbm <- gbm (count ~ . ,
