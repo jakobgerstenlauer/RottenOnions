@@ -176,7 +176,7 @@ for(year in seq(2008,2017)){
                    shrinkage=0.001,
                    n.trees = num.trees,
                    #ignore ports, because there are to many levels!
-                   data=d1[,names(d)[-c(1:5)]])
+                   data=d1[,names(d1)[-c(1:5)]])
     
     m2.gbm <- gbm (BadExit ~ . ,
                    distribution="bernoulli",
@@ -184,7 +184,7 @@ for(year in seq(2008,2017)){
                    interaction.depth=3,#6
                    shrinkage=0.001,#0.001
                    n.trees = num.trees,#3000
-                   data=d1[,names(d)[-c(1:5)]])
+                   data=d1[,names(d1)[-c(1:5)]])
   }
 
   
@@ -196,7 +196,7 @@ for(year in seq(2008,2017)){
                  shrinkage=0.001,
                  n.trees = num.trees,
                  #ignore ports, because there are to many levels!
-                 data=d1[,names(d)[-c(1:4)]])
+                 data=d1[,names(d1)[-c(1:4)]])
   ri<-summary(m1.gbm, plotit=FALSE)
   outputFileName<-glue("VariableImportanceBoostedRegressionTrees_Fingerprint_Count",year,".txt")
   setwd(dataDir)
@@ -231,7 +231,7 @@ for(year in seq(2008,2017)){
                  interaction.depth=3,#6
                  shrinkage=0.001,#0.001
                  n.trees = num.trees,#3000
-                 data=d[1,names(d)[-c(1:4)]])
+                 data=d1[1,names(d1)[-c(1:4)]])
   
   ri<-summary(m2.gbm, plotit=FALSE)
   outputFileName<-glue("VariableImportanceBoostedRegressionTrees_BadExit",year,".txt")
