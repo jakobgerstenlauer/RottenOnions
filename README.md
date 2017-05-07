@@ -14,9 +14,7 @@ The following public data sources were used:
 The first two sources describes Tor relay servers and was gathered over eleven years from 2007 to 2017.
 The last data source is a research project that was focused on hunting Sybills, i.e. secret groups of Tor nodes run by a single adversary. A glossary of Tor terminology can be found [here](https://gitweb.torproject.org/torspec.git/tree/glossary.txt).
 
-### Processing of Tor Consensus Files
-
-#### File Structure
+### File Structure Tor Consensus Files
 To understand the structure of the data, let's have a look at the following recent log file:
 https://collector.torproject.org/recent/relay-descriptors/consensuses/2017-05-03-19-00-00-consensus
 
@@ -36,7 +34,7 @@ w Bandwidth=23
 p reject 1-65535
 ```
 
-
+#### Line 1
 The first line of each record, starts with "r" and has the following pattern (SP means space, NL stands for newline):
 
 SP nickname SP identity SP digest SP publication SP IP SP ORPort SP DirPort NL
@@ -56,6 +54,9 @@ SP nickname SP identity SP digest SP publication SP IP SP ORPort SP DirPort NL
 "DirPort" is its current directory port, or "0" for "none".
 
 Source???
+
+
+#### Line 2
 
 The second line, starting with "s",contains a list of valid flags. 
 
@@ -86,13 +87,23 @@ Currently documented flags are:
 
 Source: ??? 
 
+
+#### Line 3
+
 The third line, starting with "v", contains the version of the Tor software running on the server.
 
 v Tor version: 0.2.9.10
 
-The fourth line, starting with "w", contains the bandwidth in kB of the server.
+#### Line 4
+TODO: What kind of information is stored here?
+
+#### Line 5
+
+The fifth line, starting with "w", contains the bandwidth in kB of the server.
 
 w Bandwidth=23
+
+#### Line 6
 
 The sixth line contains additional concerning the "exit policy" of the relay. Here it is specified which ports (and thus associated internet protocols) can be used for outgoing traffic.
 
