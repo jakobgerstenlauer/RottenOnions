@@ -174,7 +174,7 @@ for(year in seq(2008,2017)){
                    interaction.depth=3,#6
                    shrinkage=0.001,#0.001
                    n.trees = num.trees,#3000
-                   data=d[,names(d)[-c(1:5,10:11,14)]])
+                   data=d1[,names(d)[-c(1:5,10:11,14)]])
   }
   #fit the model only for subset of data with data about fingerprint changes
   m1.gbm <- gbm (count ~ . ,
@@ -219,7 +219,7 @@ for(year in seq(2008,2017)){
                  interaction.depth=3,#6
                  shrinkage=0.001,#0.001
                  n.trees = num.trees,#3000
-                 data=d[,names(d)[-c(1:5,10:11,14)]])
+                 data=d[1,names(d)[-c(1:5,10:11,14)]])
   
   ri<-summary(m2.gbm, plotit=FALSE)
   outputFileName<-glue("VariableImportanceBoostedRegressionTrees_BadExit",year,".txt")
