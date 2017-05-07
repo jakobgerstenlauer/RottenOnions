@@ -159,7 +159,7 @@ for(year in seq(2008,2017)){
   }
   variances<-as.numeric(lapply(d1[,8:18], calculate.variance))
   positive.variances <-ifelse(is.na(variances),FALSE,variances>0)
-  indices<-c(rep(TRUE,7), positive.variances, rep(TRUE,2)) 
+  indices<-c(rep(TRUE,7), positive.variances, TRUE) 
   d1<-d1[,indices]
   
   require("gbm")
