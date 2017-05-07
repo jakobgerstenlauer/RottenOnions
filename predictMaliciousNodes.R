@@ -135,6 +135,15 @@ for(year in seq(2008,2017)){
                    #ignore ports, because there are to many levels!
                    data=d1[,names(d)[-c(1:5,10:11,14)]])
   }
+  #fit the model only for subset of data with data about fingerprint changes
+  m1.gbm <- gbm (count ~ . ,
+                 distribution="poisson",
+                 verbose=FALSE,
+                 interaction.depth=3,
+                 shrinkage=0.001,
+                 n.trees = num.trees,
+                 #ignore ports, because there are to many levels!
+                 data=d1[,names(d)[-c(1:4,10:11,14)]])
   ri<-summary(m1.gbm)
   outputFileName<-glue("VariableImportanceBoostedRegressionTrees_",year,".txt")
   setwd(dataDir)
