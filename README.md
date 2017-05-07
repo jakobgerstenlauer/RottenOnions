@@ -108,102 +108,20 @@ w Bandwidth=23
 The sixth line contains additional concerning the "exit policy" of the relay. Here it is specified which ports (and thus associated internet protocols) can be used for outgoing traffic.
 
 #### Data Processing Tor Consensus Files
-
-The following awk-script extracts the essential information from the original logfiles:
-```awk
-#!/usr/bin/awk -f
-BEGIN{
-FS=" ";
-OFS=";";
-}
-
-{
-
-if($1=="r"){
-        Name=$2;
-        Date=$5;
-        Hour=$6;
-        IP=$7;
-        Port=$8;
-}
-
-if($1=="s"){
-        Authority=0;
-        if ( $0 ~ /Authority/ ){Authority=1}
-        BadExit=0;
-        if ( $0 ~ /BadExit/ ){BadExit=1}
-        Exit=0;
-        if ( $0 ~ /Exit/ ){Exit=1}
-        Fast=0;
-        if ( $0 ~ /Fast/ ){Fast=1}
-        Guard=0;
-        if ( $0 ~ /Guard/ ){Guard=1}
-        HSDir=0;
-        if ( $0 ~ /HSDir/ ){HSDir=1}
-        NoEdConsensus=0;
-        if ( $0 ~ /NoEdConsensus/ ){NoEdConsensus=1}
-        Running=0;
-        if ( $0 ~ /Running/ ){Running=1}
-        Stable=0;
-        if ( $0 ~ /Stable/ ){Stable=1}
-        V2Dir=0;
-        if ( $0 ~ /V2Dir/ ){V2Dir=1}
-        Valid=0;        
-        if ( $0 ~ /Valid/ ){Valid=1}
-}
-
-if($1=="v"){
-        Version=$3;
-}
-
-if($1=="w"){ 
-        search="="
-        split($2,array,search);
-        Bandwidth=array[2]; 
-} 
-
-if($1=="p"){ 
-        printf("%s;%s;%s;%s;%d;%s;%d;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n",Date,Hour,Name,IP,Port,Version,Bandwidth,Authority,BadExit,Exit,Fast,Guard,HSDir,NoEdConsensus,Running,Stable,V2Dir,Valid)
-}
-```
-                      
-This awk-script splits the data into separate files (for each year one file):
-
-```awk
-#!/usr/bin/awk -f
-BEGIN{
-FS=";";
-OFS=";";
-}
-
-{
-        year = substr($0,1,4);
-        print $0 >> "LogInfos" year ".txt"
-}
-```
-Running everything together in the bash shell: 
+We downloaded and processed the consensus files with the following bash commands:
 
 ```bash
 for year in {2007..2017}; do
 	for month in 01 02 03 04 05 06 07 08 09 10 11 12; do
 		wget --reject "index.html*" --no-parent --no-host-directories https://collector.torproject.org/archive/relay-descriptors/consensuses/consensuses-${year}-${month}.tar.xz		
-		tar -xpvf consensuses-${year}-${month}.tar.xz --to-stdout | ./extractLogInfos.awk >> LogInfos.txt
+		tar -xpvf consensuses-${year}-${month}.tar.xz --to-stdout | tee >(./extractExitPolicy.awk) | ./extractLogInfos.awk >> LogInfos.txt
 		rm consensuses-${year}-${month}.tar.xz
 	done;
 done;
 #Split the file into smaller files (for each year)
 data$ ./SplitLogInfos.awk LogInfos.txt 
 ```
-Extract the exit policy:
-```bash
-for year in {2007..2017}; do
-	for month in 01 02 03 04 05 06 07 08 09 10 11 12; do
-		wget --reject "index.html*" --no-parent --no-host-directories https://collector.torproject.org/archive/relay-descriptors/consensuses/consensuses-${year}-${month}.tar.xz		
-		tar -xpvf consensuses-${year}-${month}.tar.xz --to-stdout | ./extractExitPolicy.awk 
-		rm consensuses-${year}-${month}.tar.xz
-	done;
-done;
-```
+
 
 ### Extracting the Fingerprints
 In order to extract the fingerprints of relay servers we have to access the archive files at:
