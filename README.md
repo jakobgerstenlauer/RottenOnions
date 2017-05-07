@@ -123,13 +123,14 @@ data$ ./SplitLogInfos.awk LogInfos.txt
 ```
 
 
-### Extracting the Fingerprints
+#### Data Processing Tor Server Descriptor Files
+
 In order to extract the fingerprints of relay servers we have to access the archive files at:
 https://collector.torproject.org/archive/relay-descriptors/server-descriptors/
 
+The awk script *extractFingerprint.awk* extracts the fingerprints from the logfiles. 
 
-
-Running everything together in the bash shell: 
+The processing of fingerprints is achieved with the following bash commands:
 
 ```bash
 for year in {2007..2017}; do
@@ -141,9 +142,11 @@ for year in {2007..2017}; do
 done;
 cut -c1-13 LogFingerprints.txt | uniq -c | sort -n -k1,7 > CountFingerprints.txt
 ```
-# Retrieving the data from Sybil groups in SybilHunting 
-The files are located in https://nymity.ch/sybilhunting/
-Execute the follow bahs to get all the data from the Sybil groups in a file
+
+#### Data Processing of Sybil identities
+
+The IP addresses of Tor servers which were found to be part of Sybill groups were extracted with the following bash commands:
+
 ```bash
 #!/bin/bash
 wget --reject "index.html*" --no-parent --no-host-directories https://nymity.ch/sybilhunting/sybil-groups.tar.bz2	
@@ -171,7 +174,7 @@ rm sybil-groups.tar.bz2
 rm -rf sybil-groups
 ```
 
-For research purproses, we tagged the ip to its corresponding country, using the endpoint proveded by ipinfo.io/
+We also extracted the country codes using the endpoint provided by ipinfo.io/
 
 ```bash
 #!/bin/bash
