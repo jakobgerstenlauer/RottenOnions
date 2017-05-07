@@ -1,14 +1,21 @@
 # RottenOnions
-Find malicious Tor exit nodes.
+In this project, we use archive data from the Tor project to build predictive models for malicious Tor relays.
 
+### Background Information
+The Tor network is increasingly used by privacy aware Internet users around the world. Especially journalists, whistle-blowers and NGOs use the network to protect their communications from government surveillance. In some countries, such as China, were the state restricts his subjects access to the world wide web using DNS poisoning, access to the Tor network via so-called *bridges*, i.e. Tor nodes that are not public and thus cannot be blocked by governments, enables users to circumvent government restrictions and explore the wider Internet. The Tor network's primary objective is to provide anonymity to Internet users (i.e. clients) and content providers (i.e. servers) via hidden-services. It is however, important to note that there is a fundamental difference between anonymity and privacy, and that anonymity without privacy is often worthless, because transmitted data may contain personal information that enables snooping organizations to identify users. Traffic in the Tor network is only encrypted until it reaches the exit node. If the user does not use end-to-end encryption, the exit node and all downstream machines are able to read the clear-text of the packets sent. As a result, the Tor protocol does not provide privacy and it is thus of paramount importance for the network to detect malicious exit nodes. In this work, we will we will integrate and analyse data from the Tor archive and previous research projects. Our objective is to build statistical models predicting malicious nodes in the Tor network.    
 
-## Downloading and Processing the Data
-### Data Description
-Data was downloaded from the [CollecTor] (https://collector.torproject.org/) website of the Tor project.
-It describes Tor relay servers and was gather over eleven years from 2007 to 2017. 
+## Data Gathering and Processing
+### List of Data Sources
+The following public data sources were used:
+- [Tor consensus files](https://collector.torproject.org/archive/relay-descriptors/consensuses/)
+- [Tor server descriptor files](https://collector.torproject.org/archive/relay-descriptors/server-descriptors/)
+- [Sybill files: sybil-groups.tar.bz2](https://nymity.ch/sybilhunting/)
+The first two sources describes Tor relay servers and was gathered over eleven years from 2007 to 2017.
+The last data source is a research project that was focused on hunting Sybills, i.e. secret groups of Tor nodes run by a single adversary. A glossary of Tor terminology can be found [here](https://gitweb.torproject.org/torspec.git/tree/glossary.txt).
 
-A glossary of Tor terminology can be found here: https://gitweb.torproject.org/torspec.git/tree/glossary.txt
+### Processing of Tor Consensus Files
 
+#### File Structure
 To understand the structure of the data, let's have a look at the following recent log file:
 https://collector.torproject.org/recent/relay-descriptors/consensuses/2017-05-03-19-00-00-consensus
 
@@ -81,11 +88,7 @@ w Bandwidth=23
 
 The sixth line contains additional concerning the "exit policy" of the relay. Here it is specified which ports (and thus associated internet protocols) can be used for outgoing traffic.
 
-The archived data was obtained from the following folder:
-https://collector.torproject.org/archive/relay-descriptors/consensuses/
-The data was collected from 2007-10 to 2017-05 with 20-30 MB per file.
-
-### Data Processing
+#### Data Processing
 
 
 Awk-script that extracts the essential information from the original logfiles:
@@ -194,7 +197,7 @@ Running everything together in the bash shell:
 ```bash
 for year in {2007..2017}; do
 	for month in 01 02 03 04 05 06 07 08 09 10 11 12; do
-		wget --reject "index.html*" --no-parent --no-host-directories https://collector.torproject.org/archive/relay-descriptors/server-descriptors/serve r-descriptors-${year}-${month}.tar.xz		
+		wget --reject "index.html*" --no-parent --no-host-directories https://collector.torproject.org/archive/relay-descriptors/server-descriptors/server-descriptors-${year}-${month}.tar.xz		
 		tar -xpvf server-descriptors-${year}-${month}.tar.xz --to-stdout | ./extractFingerprint.awk | sort -k1,13 | uniq  >> LogFingerprints.txt
 		rm server-descriptors-${year}-${month}.tar.xz
 	done;
