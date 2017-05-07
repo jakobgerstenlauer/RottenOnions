@@ -140,7 +140,7 @@ for year in {2007..2017}; do
 		rm server-descriptors-${year}-${month}.tar.xz
 	done;
 done;
-cut -c1-13 LogFingerprints.txt | uniq -c | sort -n -k1,7 > CountFingerprints.txt
+cut -f1 -d" " LogFingerprints.txt | uniq -c > CountFingerprints.txt
 ```
 
 #### Data Processing of Sybil identities
