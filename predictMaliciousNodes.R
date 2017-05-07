@@ -167,24 +167,24 @@ for(year in seq(2008,2017)){
   d1$Port <- factor(d1$Port)
   numOfFactors<-length(levels(d1$Port))
   if(numOfFactors>1024){
-    warning("There are more than 1024 factor levels / ports! Thus the influence of the ports has to be ignored.")
+    stop("There are more than 1024 factor levels / ports! Thus the influence of the ports has to be ignored.")
     #fit the model only for subset of data with data about fingerprint changes
-    m1.gbm <- gbm (count ~ . ,
-                   distribution="poisson",
-                   verbose=FALSE,
-                   interaction.depth=3,
-                   shrinkage=0.001,
-                   n.trees = num.trees,
-                   #ignore ports, because there are to many levels!
-                   data=d1[,names(d1)[-c(1:5)]])
-    
-    m2.gbm <- gbm (BadExit ~ . ,
-                   distribution="bernoulli",
-                   verbose=FALSE,
-                   interaction.depth=3,#6
-                   shrinkage=0.001,#0.001
-                   n.trees = num.trees,#3000
-                   data=d1[,names(d1)[-c(1:5)]])
+    # m1.gbm <- gbm (count ~ . ,
+    #                distribution="poisson",
+    #                verbose=FALSE,
+    #                interaction.depth=3,
+    #                shrinkage=0.001,
+    #                n.trees = num.trees,
+    #                #ignore ports, because there are to many levels!
+    #                data=d1[,names(d1)[-c(1:5)]])
+    # 
+    # m2.gbm <- gbm (BadExit ~ . ,
+    #                distribution="bernoulli",
+    #                verbose=FALSE,
+    #                interaction.depth=3,#6
+    #                shrinkage=0.001,#0.001
+    #                n.trees = num.trees,#3000
+    #                data=d1[,names(d1)[-c(1:5)]])
   }
 
   
@@ -225,7 +225,9 @@ for(year in seq(2008,2017)){
   logging(names(most.suspicious.ports), outputfile=logFile) 
   
   #************************************************************************************************
-  m2.gbm <- gbm (BadExit ~ . ,
+  #if there is no variance in BadExit it is removed!
+  if(exists("d1$BadExit")){
+   m2.gbm <- gbm (BadExit ~ . ,
                  distribution="bernoulli",
                  verbose=FALSE,
                  interaction.depth=3,#6
@@ -253,6 +255,7 @@ for(year in seq(2008,2017)){
   
   logging("The 10 most suspicious ports based on BadExit flags (model results): ",outputfile=logFile) 
   logging(names(most.suspicious.ports), outputfile=logFile) 
+  }
   
   bad.ips<-unique(d[d$BadExit==1,4])
   logging("IPs with bad exit flag : ", outputfile=logFile)
@@ -283,6 +286,8 @@ num.obs.known.fingerprint,
 num.ips,
 #total number of ips with known fingerprint
 num.ips.known.fingerprint)
+
+write.table(time.series, "timeSeries.txt", row.names=FALSE, sep=";")
 
 dim(d.bad.old)
 #[1] 79272    18
