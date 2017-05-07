@@ -33,7 +33,9 @@ if(!file.exists(logFile)){
 logging<-function(logMessage, outputfile){
   oldPath<-getwd()
   setwd(logDir)
-  stopifnot(is.character(logMessage))
+  if(!(is.character(logMessage))){
+    logMessage<-as.character(logMessage)
+  }
   stopifnot(is.character(outputfile))
   stopifnot(file.exists(outputfile))
   cat(logMessage,file=outputfile,append=TRUE,fill=TRUE)
@@ -41,7 +43,7 @@ logging<-function(logMessage, outputfile){
 }
 
 #TODO Increase after first test run!
-num.trees<-1000
+num.trees<-10
 
 #Now let's run this analysis for all years:
 for(year in seq(2008,2017)){
@@ -117,15 +119,22 @@ for(year in seq(2008,2017)){
   dev.off()
   
   require("gbm")
-  #fit the model only for subset of data with data about fingerprint changes
-  m1.gbm <- gbm (count ~ . ,
-                 distribution="poisson",
-                 verbose=FALSE,
-                 interaction.depth=3,
-                 shrinkage=0.001,
-                 n.trees = num.trees,
-                 data=d1[,names(d)[-c(1:4,10:11,14)]])
   
+  #check the number of factors of gbm, only 1024 are allowed!
+  d1$Port <- factor(d1$Port)
+  numOfFactors<-length(levels(d1$Port))
+  if(numOfFactors>1024){
+    warning("There are more than 1024 factor levels / ports! Thus the influence of the ports has to be ignored.")
+    #fit the model only for subset of data with data about fingerprint changes
+    m1.gbm <- gbm (count ~ . ,
+                   distribution="poisson",
+                   verbose=FALSE,
+                   interaction.depth=3,
+                   shrinkage=0.001,
+                   n.trees = num.trees,
+                   #ignore ports, because there are to many levels!
+                   data=d1[,names(d)[-c(1:5,10:11,14)]])
+  }
   ri<-summary(m1.gbm)
   outputFileName<-glue("VariableImportanceBoostedRegressionTrees_",year,".txt")
   setwd(dataDir)
