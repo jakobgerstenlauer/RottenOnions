@@ -176,6 +176,11 @@ for(year in seq(2008,2017)){
                    n.trees = num.trees,#3000
                    data=d1[,names(d)[-c(1:5)]])
   }
+  
+  #TODO automatically remove inputs without variance!
+  #Error in gbm.fit(x, y, offset = offset, distribution = distribution, w = w,  : 
+  #The dataset size is too small or subsampling rate is too large: nTrain*bag.fraction <= n.minobsinnode 
+  
   #fit the model only for subset of data with data about fingerprint changes
   m1.gbm <- gbm (count ~ . ,
                  distribution="poisson",
