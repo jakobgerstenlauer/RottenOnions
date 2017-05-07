@@ -41,7 +41,7 @@ logging<-function(logMessage, outputfile){
 }
 
 #TODO Increase after first test run!
-num.trees<-10
+num.trees<-1000
 
 #Now let's run this analysis for all years:
 for(year in seq(2008,2017)){
@@ -76,10 +76,10 @@ for(year in seq(2008,2017)){
   d$V2Dir   <- as.factor(d$V2Dir)
   d$Valid   <- as.factor(d$Valid)
   
-  bad.ips<-unique(d[d$BadExit==1,1])
+  bad.ips<-unique(d[d$BadExit==1,"IP"])
   msg<-glue("The IPs with flag Bad Exit are: ")
   logging(msg, outputfile=logFile)
-  msg<-bad.ips
+  msg<-as.character(bad.ips)
   logging(msg, outputfile=logFile)
   
   #Plot the distribution of IP addresses: 
@@ -106,7 +106,7 @@ for(year in seq(2008,2017)){
   logging(msg, outputfile=logFile)
   
   logging("The port(s) with the maximum changes of fingerprints: ", outputfile=logFile) 
-  logging(most.suspicious.ports, outputfile=logFile) 
+  logging(as.character(most.suspicious.ports), outputfile=logFile) 
   
   #Plot the distribution of fingerprint changes: 
   setwd(plotDir)
@@ -132,7 +132,7 @@ for(year in seq(2008,2017)){
   write.table(ri, file=outputFileName,append=FALSE,col.names=FALSE)
   
   logging("The most important variables (var importance > 3%)for the prediction of suspicious IPs based on fingerprint changes are:",outputfile=logFile)
-  logging(ri[ri$rel.inf>3 , 1], outputfile=logFile) 
+  logging(as.character(ri[ri$rel.inf>3 , 1]), outputfile=logFile) 
   
   d1$predictions<-predict(m1.gbm, d1, n.trees=num.trees, type="response")
   
@@ -155,7 +155,7 @@ for(year in seq(2008,2017)){
   
   bad.ips<-unique(d[d$BadExit==1,4])
   logging("IPs with bad exit flag : ", outputfile=logFile)
-  logging(bad.ips, outputfile=logFile) 
+  logging(as.character(bad.ips), outputfile=logFile) 
   
   d.bad<-d[d$BadExit==1,]
   #eval(parse(text=glue("d_",year,"<-d.bad")))
