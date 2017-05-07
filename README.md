@@ -107,10 +107,9 @@ w Bandwidth=23
 
 The sixth line contains additional concerning the "exit policy" of the relay. Here it is specified which ports (and thus associated internet protocols) can be used for outgoing traffic.
 
-#### Data Processing
+#### Data Processing Tor Consensus Files
 
-
-Awk-script that extracts the essential information from the original logfiles:
+The following awk-script extracts the essential information from the original logfiles:
 ```awk
 #!/usr/bin/awk -f
 BEGIN{
@@ -168,7 +167,8 @@ if($1=="p"){
 }
 ```
                       
-Awk-script that splits the data into separate files (for each year one file):
+This awk-script splits the data into separate files (for each year one file):
+
 ```awk
 #!/usr/bin/awk -f
 BEGIN{
