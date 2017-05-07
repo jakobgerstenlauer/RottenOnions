@@ -185,7 +185,7 @@ for(year in seq(2008,2017)){
                  n.trees = num.trees,
                  #ignore ports, because there are to many levels!
                  data=d1[,names(d)[-c(1:4,10:11,14)]])
-  ri<-summary(m1.gbm)
+  ri<-summary(m1.gbm, plotit=FALSE)
   outputFileName<-glue("VariableImportanceBoostedRegressionTrees_Fingerprint_Count",year,".txt")
   setwd(dataDir)
   write.table(ri, file=outputFileName,append=FALSE,col.names=FALSE)
@@ -221,7 +221,7 @@ for(year in seq(2008,2017)){
                  n.trees = num.trees,#3000
                  data=d[,names(d)[-c(1:5,10:11,14)]])
   
-  ri<-summary(m2.gbm)
+  ri<-summary(m2.gbm, plotit=FALSE)
   outputFileName<-glue("VariableImportanceBoostedRegressionTrees_BadExit",year,".txt")
   setwd(dataDir)
   write.table(ri, file=outputFileName,append=FALSE,col.names=FALSE)
