@@ -87,6 +87,7 @@ for(year in seq(2008,2017)){
   d<-read.table(fileName, header=FALSE, sep=";",quote="",  
                 stringsAsFactors=FALSE,comment.char="",                   
                 colClasses=col.type)
+  
   num.obs[index]<-dim(d)[1]
   num.ips[index]<-length(unique(d$IP))
   names(d)<-header
@@ -126,8 +127,21 @@ for(year in seq(2008,2017)){
   print(histogram(~log(table(d$IP))))
   dev.off()
   
-  #perform a left join with the data set containing the information about change of fingerprints 
+  #Automatically remove inputs without variance:
+  calculate.variance<-function(x){
+    var(as.numeric(x), na.rm = TRUE)
+  }
+  variances<-as.numeric(lapply(d[,8:18], calculate.variance))
+  positive.variances <-ifelse(is.na(variances),FALSE,variances>0)
+  indices<-c(rep(TRUE,7), positive.variances) 
+  d<-d[,indices]
+  
+  #logistic regression of BadExit
+  m1.glm <- glm(BadExit ~ . , family= binomial(), data=d)
+  
+  #perform a join with the data set containing the information about change of fingerprints 
   d<-merge(d, d.fp, by="IP")
+  gc();
   
   #subset of data with information about fingerprint changes
   d<-d[!is.na(d$count),]
@@ -157,15 +171,6 @@ for(year in seq(2008,2017)){
   require("lattice")
   print(histogram(~d$count))
   dev.off()
-  
-  #Automatically remove inputs without variance:
-  calculate.variance<-function(x){
-    var(as.numeric(x), na.rm = TRUE)
-  }
-  variances<-as.numeric(lapply(d[,8:18], calculate.variance))
-  positive.variances <-ifelse(is.na(variances),FALSE,variances>0)
-  indices<-c(rep(TRUE,7), positive.variances, TRUE) 
-  d<-d[,indices]
   
   require("gbm")
   #check the number of factors of gbm, only 1024 are allowed!
