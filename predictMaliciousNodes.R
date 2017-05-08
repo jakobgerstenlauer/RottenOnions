@@ -82,7 +82,6 @@ for(year in seq(2008,2017)){
   msg<-glue("Year: ", year)
   logging(msg, outputfile=logFile) 
   
-  rm(d,d1,dfp)
   setwd(dataDir)
   fileName<-glue("LogInfos",year,".txt")
   d<-read.table(fileName, header=FALSE, sep=";",quote="",  
@@ -115,6 +114,10 @@ for(year in seq(2008,2017)){
   logging(msg, outputfile=logFile)
   num.ips.flag.bad[index]<-length(bad.ips)
   
+  outputFileName<-glue("IPs_BadExit_",year,".txt")
+  setwd(dataDir)
+  write.table(bad.ips, file=outputFileName,append=FALSE,col.names=FALSE)
+  
   #Plot the distribution of IP addresses: 
   setwd(plotDir)
   plotName<-glue("Histogram_IP_addresses_",year,".jpeg")
@@ -128,6 +131,7 @@ for(year in seq(2008,2017)){
   
   #subset of data with information about fingerprint changes
   d1<-d[!is.na(d$count),]
+  rm(d)
   num.obs.known.fingerprint[index]<-dim(d1)[1]
   num.ips.known.fingerprint[index]<-length(unique(d1$IP))
   
@@ -136,6 +140,7 @@ for(year in seq(2008,2017)){
   max.count<-max(dx$count)
   dx<-dx[dx$count==max.count,]
   most.suspicious.ports<-unique(dx$IP)
+  rm(dx)
   
   msg<-glue("The maximum number of fingerprint changes is: ", 
             max.count)
@@ -168,26 +173,8 @@ for(year in seq(2008,2017)){
   numOfFactors<-length(levels(d1$Port))
   if(numOfFactors>1024){
     stop("There are more than 1024 factor levels / ports! Thus the influence of the ports has to be ignored.")
-    #fit the model only for subset of data with data about fingerprint changes
-    # m1.gbm <- gbm (count ~ . ,
-    #                distribution="poisson",
-    #                verbose=FALSE,
-    #                interaction.depth=3,
-    #                shrinkage=0.001,
-    #                n.trees = num.trees,
-    #                #ignore ports, because there are to many levels!
-    #                data=d1[,names(d1)[-c(1:5)]])
-    # 
-    # m2.gbm <- gbm (BadExit ~ . ,
-    #                distribution="bernoulli",
-    #                verbose=FALSE,
-    #                interaction.depth=3,#6
-    #                shrinkage=0.001,#0.001
-    #                n.trees = num.trees,#3000
-    #                data=d1[,names(d1)[-c(1:5)]])
   }
 
-  
   #fit the model only for subset of data with data about fingerprint changes
   m1.gbm <- gbm (count ~ . ,
                  distribution="poisson",
@@ -216,6 +203,7 @@ for(year in seq(2008,2017)){
   ports<-ports[!is.na(ports)]
   dx<-subset(d1, Port %in% ports)
   suspicious.ports<-sort(with(dx, tapply(predictions, Port, mean)))
+  rm(dx)
   n<-length(suspicious.ports)
   most.suspicious.ports<-suspicious.ports[seq((n-20),n)]
   #9080     9002    49000       21     9005    20017 
@@ -223,6 +211,7 @@ for(year in seq(2008,2017)){
   
   logging("The 10 most suspicious ports based on fingerprint changes (model results): ",outputfile=logFile) 
   logging(names(most.suspicious.ports), outputfile=logFile) 
+  rm(m1.gbm)
   
   #************************************************************************************************
   #if there is no variance in BadExit it is removed!
@@ -243,13 +232,16 @@ for(year in seq(2008,2017)){
   logging("The most important variables (var importance > 3%)for the prediction of BadExit IPs:",outputfile=logFile)
   logging(as.character(ri[ri$rel.inf>3 , 1]), outputfile=logFile) 
   
-  d$predictions<-predict(m2.gbm, d, n.trees=num.trees, type="response")
-  port.observations<-with(d,tapply(predictions, Port, length))
+  d1$predictions2<-predict(m2.gbm, d1, n.trees=num.trees, type="response")
+  rm(m2.gbm)
+  
+  port.observations<-with(d1,tapply(predictions2, Port, length))
   #Let's restrict the analysis to ports with at least 5 observations:
   ports<-(names(port.observations[port.observations>4]))
   ports<-ports[!is.na(ports)]
-  dx<-subset(d, Port %in% ports)
+  dx<-subset(d1, Port %in% ports)
   suspicious.ports<-sort(with(dx, tapply(predictions, Port, mean)))
+  rm(dx)
   n<-length(suspicious.ports)
   most.suspicious.ports<-suspicious.ports[seq((n-20),n)]
   
@@ -257,18 +249,6 @@ for(year in seq(2008,2017)){
   logging(names(most.suspicious.ports), outputfile=logFile) 
   }
   
-  bad.ips<-unique(d[d$BadExit==1,4])
-  logging("IPs with bad exit flag : ", outputfile=logFile)
-  logging(as.character(bad.ips), outputfile=logFile) 
-  
-  d.bad<-d[d$BadExit==1,]
-  #eval(parse(text=glue("d_",year,"<-d.bad")))
-  
-  if(exists("d.bad.old")){
-    d.bad.old<-rbind(d.bad.old,d.bad)  
-  }else{
-    d.bad.old<-d.bad  
-  }
   index<-index+1;
 }
 
@@ -288,15 +268,3 @@ num.ips,
 num.ips.known.fingerprint)
 
 write.table(time.series, "timeSeries.txt", row.names=FALSE, sep=";")
-
-dim(d.bad.old)
-#[1] 79272    18
-
-summary(d.bad.old)
-
-setwd(dataDir)
-write.table(d.bad.old, "BadRelays.txt", row.names=FALSE, sep=";")
-
-#require("lme4")
-#m1.glmer <- glmer(formula = BadExit ~  Port + Version + Bandwidth + (1 | IP) ,
-#                  family=binomial(link='logit'), data = d)
