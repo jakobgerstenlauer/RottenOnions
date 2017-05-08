@@ -50,7 +50,7 @@ logging<-function(logMessage, outputfile){
 }
 
 #TODO Increase after first test run!
-num.trees <- 10
+num.trees <- 300
 
 #set up a new data set that collects key infos for time series from 2017 to 2018
 n <- length(seq(2008,2017))
@@ -144,24 +144,110 @@ for(year in seq(2008,2017)){
   if("BadExit" %in% names(d)){
     predictors<-names(d)[-c(1:4)]
     predictors<-predictors[predictors!="BadExit"]
+    #There is a problem with this predictor (with the contrasts)
+    predictors<-predictors[predictors!="NoEdConsensus"]
     
     #take a subsample of the observations which don't have the "BadExit" flag:
     indicesBad<-which(d$BadExit==1)
     indicesGood<-which(d$BadExit==0)
     
     #I want to have a balanced sample!
+    #Therefore I retain all observations with the flag BadExit,
+    #and I randomly sample the same number of observation from the subset 
+    #of 
     N<-length(indicesBad)
-    samplesGood <- sample(indicesGood, size = N, replace = FALSE)
-    sampleIndices <- sort(c(samplesGood, indicesBad))
+    if(N > 20000){
+      N <- 20000;
+      indicesBad<-sample(indicesBad, size = N, replace = FALSE);
+    }
+    samplesGood <- sample(indicesGood, size = N, replace = FALSE);
+    sampleIndices <- sort(c(samplesGood, indicesBad));
     
+    bestPredictor <- predictors[1]
+    bestAIC<- AIC(glm(BadExit ~ 1, family= binomial(), data=d[sampleIndices,]))
+       
     for(predictor in predictors){
-      
       eval(parse(text=glue(
         "m1.glm <- glm(BadExit ~ ",predictor," , family= binomial(), data=d[sampleIndices,])"
       )))
-      msg<-glue(predictor," : AIC:", AIC(m1.glm))
+      aic<-AIC(m1.glm)
+      msg<-glue(predictor," : AIC:",aic)
       logging(msg, outputfile=logFile)
+      if(aic < bestAIC){
+        bestAIC<-aic;
+        bestPredictor <- predictor;
+      }
     }
+    FirstPredictor<-bestPredictor
+    predictors<-predictors[predictors!=FirstPredictor]
+    
+    msg<-glue("Best predictor in round 1 is: ", FirstPredictor)
+    logging(msg, outputfile=logFile)
+    
+    #Round 2
+    for(predictor in predictors){
+      eval(parse(text=glue(
+        "m1.glm <- glm(BadExit ~ ",FirstPredictor," + ",predictor," , family= binomial(), data=d[sampleIndices,])"
+      )))
+      aic<-AIC(m1.glm)
+      msg<-glue(predictor," : AIC:",aic)
+      logging(msg, outputfile=logFile)
+      if(aic < bestAIC){
+        bestAIC<-aic;
+        bestPredictor <- predictor;
+      }
+    }
+    
+    SecondPredictor<-bestPredictor
+    predictors<-predictors[predictors!=SecondPredictor]
+    
+    msg<-glue("Best predictor in round 2 is: ", SecondPredictor)
+    logging(msg, outputfile=logFile)
+    
+    #Round 3
+    for(predictor in predictors){
+      eval(parse(text=glue(
+        "m1.glm <- glm(BadExit ~ ",FirstPredictor," + ",SecondPredictor," +",predictor," , family= binomial(), data=d[sampleIndices,])"
+      )))
+      aic<-AIC(m1.glm)
+      msg<-glue(predictor," : AIC:",aic)
+      logging(msg, outputfile=logFile)
+      if(aic < bestAIC){
+        bestAIC<-aic;
+        bestPredictor <- predictor;
+      }
+    }
+    
+    ThirdPredictor<-bestPredictor
+    predictors<-predictors[predictors!=ThirdPredictor]
+    
+    msg<-glue("Best predictor in round 3 is: ", ThirdPredictor)
+    logging(msg, outputfile=logFile)
+    
+    #Round 4
+    for(predictor in predictors){
+      eval(parse(text=glue(
+        "m1.glm <- glm(BadExit ~ ",FirstPredictor," + ",SecondPredictor," + ",ThirdPredictor," +",predictor," , family= binomial(), data=d[sampleIndices,])"
+      )))
+      aic<-AIC(m1.glm)
+      msg<-glue(predictor," : AIC:",aic)
+      logging(msg, outputfile=logFile)
+      if(aic < bestAIC){
+        bestAIC<-aic;
+        bestPredictor <- predictor;
+      }
+    }
+    
+    #Write final model with four predictors to text output file:
+    FourthPredictor<-bestPredictor
+    eval(parse(text=glue(
+      "m1.glm <- glm(BadExit ~ ",FirstPredictor," + ",SecondPredictor," + ",ThirdPredictor," +",FourthPredictor," , family= binomial(), data=d[sampleIndices,])"
+    )))
+    fileName<-glue("ModelSummary_",year,".txt")
+    setwd(dataDir)
+    sink(fileName)
+    summary(m1.glm)
+    sink()  
   }
   
   #perform a join with the data set containing the information about change of fingerprints 
