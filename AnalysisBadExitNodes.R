@@ -16,6 +16,7 @@ d <- read.table("BadRelays.txt", sep = ";", header = TRUE)
 # [8] "Authority"     "BadExit"       "Exit"          "Fast"          "Guard"         "HSDir"         "NoEdConsensus"
 # [15] "Running"       "Stable"        "V2Dir"         "Valid" 
 
+#TODO Question: What does this function do? I don't see a plot but it is also no storing a plot to a file.
 draw.plot<-function(input.data,type){
   #require(ggplot2)
   #require(gridExtra)
@@ -54,4 +55,5 @@ head(arrange(as.data.frame(table(d$Port)),desc(as.data.frame(table(d$Port))$Freq
 # AccountingMax, please consider changing your ORPort to 443 and/or your DirPort to 80."
 # So 443 is stated as a configuration alternative, probably this is  the case for this as it is the port
 # for https.
+# TODO Question: What does this mean in practical terms for our research?
 
