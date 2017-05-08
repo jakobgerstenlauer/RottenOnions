@@ -137,8 +137,32 @@ for(year in seq(2008,2017)){
   d<-d[,indices]
   gc()
   
+  msg<-glue("Logistic regression models: ")
+  logging(msg, outputfile=logFile)
+  
   #logistic regression of BadExit
-  m1.glm <- glm(BadExit ~ . , family= binomial(), data=d)
+  if("BadExit" %in% names(d)){
+    predictors<-names(d)[-c(1:4)]
+    predictors<-predictors[predictors!="BadExit"]
+    
+    #take a subsample of the observations which don't have the "BadExit" flag:
+    indicesBad<-which(d$BadExit==1)
+    indicesGood<-which(d$BadExit==0)
+    
+    #I want to have a balanced sample!
+    N<-length(indicesBad)
+    samplesGood <- sample(indicesGood, size = N, replace = FALSE)
+    sampleIndices <- sort(c(samplesGood, indicesBad))
+    
+    for(predictor in predictors){
+      
+      eval(parse(text=glue(
+        "m1.glm <- glm(BadExit ~ ",predictor," , family= binomial(), data=d[sampleIndices,])"
+      )))
+      msg<-glue(predictor," : AIC:", AIC(m1.glm))
+      logging(msg, outputfile=logFile)
+    }
+  }
   
   #perform a join with the data set containing the information about change of fingerprints 
   d<-merge(d, d.fp, by="IP")
