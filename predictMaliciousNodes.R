@@ -135,6 +135,7 @@ for(year in seq(2008,2017)){
   positive.variances <-ifelse(is.na(variances),FALSE,variances>0)
   indices<-c(rep(TRUE,7), positive.variances) 
   d<-d[,indices]
+  gc()
   
   #logistic regression of BadExit
   m1.glm <- glm(BadExit ~ . , family= binomial(), data=d)
