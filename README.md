@@ -53,7 +53,7 @@ SP nickname SP identity SP digest SP publication SP IP SP ORPort SP DirPort NL
 
 "DirPort" is its current directory port, or "0" for "none".
 
-Source???
+Source: https://gitweb.torproject.org/torspec.git/tree/dir-spec.txt
 
 
 #### Line 2
@@ -85,7 +85,7 @@ Currently documented flags are:
 
 "V2Dir" if the router implements the v2 directory protocol or higher.
 
-Source: ??? 
+Source: https://gitweb.torproject.org/torspec.git/tree/dir-spec.txt
 
 
 #### Line 3
