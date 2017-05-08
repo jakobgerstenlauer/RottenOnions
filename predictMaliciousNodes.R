@@ -127,15 +127,15 @@ for(year in seq(2008,2017)){
   dev.off()
   
   #perform a left join with the data set containing the information about change of fingerprints 
-  d<-merge(d, d.fp, by="IP",all.x = TRUE)
+  d<-merge(d, d.fp, by="IP")
   
   #subset of data with information about fingerprint changes
-  d1<-d[!is.na(d$count),]
-  rm(d)
-  num.obs.known.fingerprint[index]<-dim(d1)[1]
-  num.ips.known.fingerprint[index]<-length(unique(d1$IP))
+  d<-d[!is.na(d$count),]
   
-  dx<-d1[d1$count>1,]
+  num.obs.known.fingerprint[index]<-dim(d)[1]
+  num.ips.known.fingerprint[index]<-length(unique(d$IP))
+  
+  dx<-d[d$count>1,]
   num.ips.changing.fingerprint[index] <- dim(dx)[1]
   max.count<-max(dx$count)
   dx<-dx[dx$count==max.count,]
@@ -155,22 +155,22 @@ for(year in seq(2008,2017)){
   plotName<-glue("Histogram_Fingerprint_Changes_",year,".jpeg")
   jpeg(plotName)
   require("lattice")
-  print(histogram(~d1$count))
+  print(histogram(~d$count))
   dev.off()
   
   #Automatically remove inputs without variance:
   calculate.variance<-function(x){
     var(as.numeric(x), na.rm = TRUE)
   }
-  variances<-as.numeric(lapply(d1[,8:18], calculate.variance))
+  variances<-as.numeric(lapply(d[,8:18], calculate.variance))
   positive.variances <-ifelse(is.na(variances),FALSE,variances>0)
   indices<-c(rep(TRUE,7), positive.variances, TRUE) 
-  d1<-d1[,indices]
+  d<-d[,indices]
   
   require("gbm")
   #check the number of factors of gbm, only 1024 are allowed!
-  d1$Port <- factor(d1$Port)
-  numOfFactors<-length(levels(d1$Port))
+  d$Port <- factor(d$Port)
+  numOfFactors<-length(levels(d$Port))
   if(numOfFactors>1024){
     stop("There are more than 1024 factor levels / ports! Thus the influence of the ports has to be ignored.")
   }
@@ -183,7 +183,7 @@ for(year in seq(2008,2017)){
                  shrinkage=0.001,
                  n.trees = num.trees,
                  #ignore ports, because there are to many levels!
-                 data=d1[,names(d1)[-c(1:4)]])
+                 data=d[,names(d)[-c(1:4)]])
   ri<-summary(m1.gbm, plotit=FALSE)
   outputFileName<-glue("VariableImportanceBoostedRegressionTrees_Fingerprint_Count",year,".txt")
   setwd(dataDir)
@@ -192,16 +192,16 @@ for(year in seq(2008,2017)){
   logging("The most important variables (var importance > 3%)for the prediction of suspicious IPs based on fingerprint changes are:",outputfile=logFile)
   logging(as.character(ri[ri$rel.inf>3 , 1]), outputfile=logFile) 
   
-  d1$predictions<-predict(m1.gbm, d1, n.trees=num.trees, type="response")
+  d$predictions<-predict(m1.gbm, d, n.trees=num.trees, type="response")
   
   #number of observations
-  N<-dim(d1)[1]
+  N<-dim(d)[1]
  
-  port.observations<-with(d1,tapply(predictions, Port, length))
+  port.observations<-with(d,tapply(predictions, Port, length))
   #Let's restrict the analysis to ports with at least 5 observations:
   ports<-(names(port.observations[port.observations>4]))
   ports<-ports[!is.na(ports)]
-  dx<-subset(d1, Port %in% ports)
+  dx<-subset(d, Port %in% ports)
   suspicious.ports<-sort(with(dx, tapply(predictions, Port, mean)))
   rm(dx)
   n<-length(suspicious.ports)
@@ -215,14 +215,14 @@ for(year in seq(2008,2017)){
   
   #************************************************************************************************
   #if there is no variance in BadExit it is removed!
-  if(exists("d1$BadExit")){
+  if(exists("d$BadExit")){
    m2.gbm <- gbm (BadExit ~ . ,
                  distribution="bernoulli",
                  verbose=FALSE,
                  interaction.depth=3,#6
                  shrinkage=0.001,#0.001
                  n.trees = num.trees,#3000
-                 data=d1[1,names(d1)[-c(1:4)]])
+                 data=d[1,names(d)[-c(1:4)]])
   
   ri<-summary(m2.gbm, plotit=FALSE)
   outputFileName<-glue("VariableImportanceBoostedRegressionTrees_BadExit",year,".txt")
@@ -232,14 +232,14 @@ for(year in seq(2008,2017)){
   logging("The most important variables (var importance > 3%)for the prediction of BadExit IPs:",outputfile=logFile)
   logging(as.character(ri[ri$rel.inf>3 , 1]), outputfile=logFile) 
   
-  d1$predictions2<-predict(m2.gbm, d1, n.trees=num.trees, type="response")
+  d$predictions2<-predict(m2.gbm, d, n.trees=num.trees, type="response")
   rm(m2.gbm)
   
-  port.observations<-with(d1,tapply(predictions2, Port, length))
+  port.observations<-with(d,tapply(predictions2, Port, length))
   #Let's restrict the analysis to ports with at least 5 observations:
   ports<-(names(port.observations[port.observations>4]))
   ports<-ports[!is.na(ports)]
-  dx<-subset(d1, Port %in% ports)
+  dx<-subset(d, Port %in% ports)
   suspicious.ports<-sort(with(dx, tapply(predictions, Port, mean)))
   rm(dx)
   n<-length(suspicious.ports)
@@ -248,7 +248,7 @@ for(year in seq(2008,2017)){
   logging("The 10 most suspicious ports based on BadExit flags (model results): ",outputfile=logFile) 
   logging(names(most.suspicious.ports), outputfile=logFile) 
   }
-  
+  rm(d);gc();
   index<-index+1;
 }
 
