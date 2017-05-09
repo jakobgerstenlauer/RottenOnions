@@ -46,6 +46,7 @@ draw.plot(d[,sapply(d, is.numeric)],"histogram")
 #from the plot we can see that port around 10000 has something to do with bad nodes, we will check this
 
 require(plyr)
+require(xtable)
 head(arrange(as.data.frame(table(d$Port)),desc(as.data.frame(table(d$Port))$Freq)), n = 10)
 # just 8 ports are used by bad exit nodes, being the most frequent one 9001 and 443 
 # Explanation:
@@ -57,3 +58,20 @@ head(arrange(as.data.frame(table(d$Port)),desc(as.data.frame(table(d$Port))$Freq
 # for https.
 # TODO Question: What does this mean in practical terms for our research?
 
+# read file "taggedips.txt" to get how many countries are marked as bad exit relays according from sybil hunter data
+dc<-read.table("taggedips.txt",sep = " ")
+colnames(dc) <- c("IP Address","Country")
+freq.countries<-head(arrange(as.data.frame(table(dc$Country)),desc(as.data.frame(table(dc$Country))$Freq)), n = 10)
+print.xtable(xtable(freq.countries), type="latex", file="freq.sybil.countries.tex",caption= "Frequency of countries reported in SybilHunter")
+# Var1 Freq
+# 1    HR  253
+# 2    RU  206
+# 3    US  172
+# 4    NL  134
+# 5    SI  116
+# 6    DE   68
+# 7    ES   58
+# 8    GB   24
+# 9    BA   16
+# 10   FR   14
+# Top ten countries marked in sybil hunter
