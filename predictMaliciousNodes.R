@@ -22,7 +22,7 @@ count <- as.numeric(sapply(lines,getFirstColumn))
 IP <- as.character(sapply(lines,getSecondColumn))
 d.fp<-data.frame(count,IP)
 
-setwd(dataDir)
+setwd(logDir)
 #create a logfile
 logFile<-"ProcessAllYears.log"
 if(!file.exists(logFile)){
