@@ -283,7 +283,7 @@ for(year in seq(2008,2017)){
   num.ips.known.fingerprint[index]<-length(unique(d$IP))
   
   dx<-d[d$count>1,]
-  num.ips.changing.fingerprint[index] <- dim(dx)[1]
+  num.ips.changing.fingerprint[index] <- length(unique(dx$IP))
   max.count<-max(dx$count)
   dx<-dx[dx$count==max.count,]
   most.suspicious.ips<-unique(dx$IP)
@@ -425,3 +425,18 @@ for(year in seq(2008,2017)){
   
   setwd(dataDir)
   write.table(time.series, "timeSeries.txt", row.names=FALSE, sep=";")
+  
+  plot(year,num.ips)
+  plot(year,num.ips.flag.bad/num.ips)
+  #extraordinary peak of IPs with flag "BadExit" in 2012
+  plot(year,num.ips.changing.fingerprint/num.ips.known.fingerprint)
+  #Something is inconsistent in the data, we see values higher than 100!
+  
+  > plot(year,num.ips.known.fingerprint/num.ips)
+  > plot(year,num.obs/num.obs.known.fingerprint)
+  > plot(year,num.obs.known.fingerprint/num.obs)
+  > plot(year,num.sybills)
+  > plot(year,num.ips.changing.fingerprint/num.ips.known.fingerprint)
+  > plot(year,num.ips.changing.fingerprint)
+  > plot(year,num.ips.changing.fingerprint/num.ips.known.fingerprint)
+  
