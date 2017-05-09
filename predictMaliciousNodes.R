@@ -59,10 +59,10 @@ logging<-function(logMessage, outputfile){
 }
 
 #TODO Set TRUE to run statistical analyses!
-runStats <- FALSE
+runStats <- TRUE
 
 #TODO Increase after first test run!
-num.trees <- 300
+num.trees <- 1000
 
 #set up a new data set that collects key infos for time series from 2017 to 2018
 n <- length(seq(2008,2017))
@@ -165,8 +165,9 @@ for(year in seq(2008,2017)){
       
       predictors<-names(d)[-c(1:4)]
       predictors<-predictors[predictors!="BadExit"]
-      #There is a problem with this predictor (with the contrasts)
+      #There are problems with these predictors (with the contrasts)
       predictors<-predictors[predictors!="NoEdConsensus"]
+      predictors<-predictors[predictors!="isSybill"]
       
       #take a subsample of the observations which don't have the "BadExit" flag:
       indicesBad<-which(d$BadExit==1)
