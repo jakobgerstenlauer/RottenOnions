@@ -38,6 +38,12 @@ if(!file.exists(logFilePorts)){
   file.create(logFilePorts)
 }
 
+#create a logfile
+logFileIPs<-"SuspiciousIPs.log"
+if(!file.exists(logFileIPs)){
+  file.create(logFileIPs)
+}
+
 #a logging function
 #Warning: the logFile has to exist already!
 logging<-function(logMessage, outputfile){
@@ -280,7 +286,7 @@ for(year in seq(2008,2017)){
   num.ips.changing.fingerprint[index] <- dim(dx)[1]
   max.count<-max(dx$count)
   dx<-dx[dx$count==max.count,]
-  most.suspicious.ports<-unique(dx$IP)
+  most.suspicious.ips<-unique(dx$IP)
   rm(dx)
   
   msg<-glue("The maximum number of fingerprint changes is: ", 
@@ -288,8 +294,8 @@ for(year in seq(2008,2017)){
   logging(msg, outputfile=logFile)
   
   logging("The port(s) with the maximum changes of fingerprints: ", outputfile=logFile) 
-  logging(as.character(most.suspicious.ports), outputfile=logFile) 
-  logging(as.character(most.suspicious.ports), outputfile=logFilePorts)
+  logging(as.character(most.suspicious.ips), outputfile=logFile) 
+  logging(as.character(most.suspicious.ips), outputfile=logFileIPs)
   
   #Plot the distribution of fingerprint changes: 
   setwd(plotDir)
