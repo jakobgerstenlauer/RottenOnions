@@ -292,6 +292,7 @@ for(year in seq(2008,2017)){
   }
 
   #fit the model only for subset of data with data about fingerprint changes
+  tryCatch({
   m1.gbm <- gbm (count ~ . ,
                  distribution="poisson",
                  verbose=FALSE,
@@ -309,6 +310,12 @@ for(year in seq(2008,2017)){
   logging(as.character(ri[ri$rel.inf>3 , 1]), outputfile=logFile) 
   
   d$predictions<-predict(m1.gbm, d, n.trees=num.trees, type="response")
+  rm(m2.gbm)
+  }, error = function(e) {
+    rm(m2.gbm);
+  }, finally = {
+    rm(m2.gbm);
+  })
   
   #number of observations
   N<-dim(d)[1]
@@ -332,55 +339,63 @@ for(year in seq(2008,2017)){
   #************************************************************************************************
   #if there is no variance in BadExit it is removed!
   if(exists("d$BadExit")){
-   m2.gbm <- gbm (BadExit ~ . ,
-                 distribution="bernoulli",
-                 verbose=FALSE,
-                 interaction.depth=3,#6
-                 shrinkage=0.001,#0.001
-                 n.trees = num.trees,#3000
-                 data=d[1,names(d)[-c(1:4)]])
+ 
+    tryCatch({
+    m2.gbm <- gbm (BadExit ~ . ,
+                   distribution="bernoulli",
+                   verbose=FALSE,
+                   interaction.depth=3,#6
+                   shrinkage=0.001,#0.001
+                   n.trees = num.trees,#3000
+                   data=d[1,names(d)[-c(1:4)]])
   
-  ri<-summary(m2.gbm, plotit=FALSE)
-  outputFileName<-glue("VariableImportanceBoostedRegressionTrees_BadExit",year,".txt")
-  setwd(dataDir)
-  write.table(ri, file=outputFileName,append=FALSE,col.names=FALSE)
-  
-  logging("The most important variables (var importance > 3%)for the prediction of BadExit IPs:",outputfile=logFile)
-  logging(as.character(ri[ri$rel.inf>3 , 1]), outputfile=logFile) 
-  
-  d$predictions2<-predict(m2.gbm, d, n.trees=num.trees, type="response")
-  rm(m2.gbm)
-  
-  port.observations<-with(d,tapply(predictions2, Port, length))
-  #Let's restrict the analysis to ports with at least 5 observations:
-  ports<-(names(port.observations[port.observations>4]))
-  ports<-ports[!is.na(ports)]
-  dx<-subset(d, Port %in% ports)
-  suspicious.ports<-sort(with(dx, tapply(predictions, Port, mean)))
-  rm(dx)
-  n<-length(suspicious.ports)
-  most.suspicious.ports<-suspicious.ports[seq((n-20),n)]
-  
-  logging("The 10 most suspicious ports based on BadExit flags (model results): ",outputfile=logFile) 
-  logging(names(most.suspicious.ports), outputfile=logFile) 
+    ri<-summary(m2.gbm, plotit=FALSE)
+    outputFileName<-glue("VariableImportanceBoostedRegressionTrees_BadExit",year,".txt")
+    setwd(dataDir)
+    write.table(ri, file=outputFileName,append=FALSE,col.names=FALSE)
+    
+    logging("The most important variables (var importance > 3%)for the prediction of BadExit IPs:",outputfile=logFile)
+    logging(as.character(ri[ri$rel.inf>3 , 1]), outputfile=logFile) 
+    
+    d$predictions2<-predict(m2.gbm, d, n.trees=num.trees, type="response")
+    rm(m2.gbm)
+    }, error = function(e) {
+        rm(m2.gbm);
+    }, finally = {
+        rm(m2.gbm);
+    })
+    
+    port.observations<-with(d,tapply(predictions2, Port, length))
+    #Let's restrict the analysis to ports with at least 5 observations:
+    ports<-(names(port.observations[port.observations>4]))
+    ports<-ports[!is.na(ports)]
+    dx<-subset(d, Port %in% ports)
+    suspicious.ports<-sort(with(dx, tapply(predictions, Port, mean)))
+    rm(dx)
+    n<-length(suspicious.ports)
+    most.suspicious.ports<-suspicious.ports[seq((n-20),n)]
+    
+    logging("The 10 most suspicious ports based on BadExit flags (model results): ",outputfile=logFile) 
+    logging(names(most.suspicious.ports), outputfile=logFile) 
+    }
+    rm(d);gc();
+    index<-index+1;
   }
-  rm(d);gc();
-  index<-index+1;
-}
 
-time.series<-data.frame(
-year<-seq(2008,2017),
-#total number of ips flaged as bad exit
-num.ips.flag.bad,
-#total number of ips with more than one fingerprint
-num.ips.changing.fingerprint,
-#total number of observations
-num.obs,
-#total number of observations with fingerprint info
-num.obs.known.fingerprint,
-#total number of ips observed
-num.ips,
-#total number of ips with known fingerprint
-num.ips.known.fingerprint)
-
-write.table(time.series, "timeSeries.txt", row.names=FALSE, sep=";")
+  time.series<-data.frame(
+  year<-seq(2008,2017),
+  #total number of ips flaged as bad exit
+  num.ips.flag.bad,
+  #total number of ips with more than one fingerprint
+  num.ips.changing.fingerprint,
+  #total number of observations
+  num.obs,
+  #total number of observations with fingerprint info
+  num.obs.known.fingerprint,
+  #total number of ips observed
+  num.ips,
+  #total number of ips with known fingerprint
+  num.ips.known.fingerprint)
+  
+  setwd(dataDir)
+  write.table(time.series, "timeSeries.txt", row.names=FALSE, sep=";")
