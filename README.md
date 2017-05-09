@@ -162,7 +162,7 @@ for D in sybil-groups/*; do
 	for F in ${D}/consensuses/*; do
 		COUNTER=$((COUNTER + 1))
 		# using awk script to retrieve data, in this case ip address
-		$cwd/extractip.awk $F >> IpInfo.txt
+		$cwd/extractip.awk $F >> SybillIpList.txt
 	done	
     fi
 done
@@ -195,7 +195,7 @@ do
     
 done
 # unique is not needed here, it is just a check to be sure
-sort temp.txt | uniq > taggedips.txt 
+sort temp.txt | uniq > SybillIpListCountry.txt 
 echo "Succesfully tagged $COUNTER countries"
 rm temp.txt
 ```
