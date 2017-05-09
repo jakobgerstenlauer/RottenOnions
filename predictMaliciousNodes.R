@@ -9,6 +9,9 @@ source("workingDir.R")
 #change to the data directory
 setwd(dataDir)
 
+#Read additional data set with IPs belonging to Sybills
+IPs.Sybill <- readLines("IpInfo.txt")
+
 #Read additional data set describing how often the server has changed his fingerprint:
 lines<-readLines("CountFingerprints.txt")
 trim.leading <- function (x)  sub("^\\s+", "", x)
@@ -72,6 +75,10 @@ num.ips <- rep(-1, n)
 
 #total number of ips with known fingerprint
 num.ips.known.fingerprint <- rep(-1, n)
+
+#number of Sybills
+num.sybills <- rep(-1, n)
+
 header<-c("Date","Hour","Name","IP","Port","Version","Bandwidth","Authority","BadExit","Exit","Fast","Guard","HSDir","NoEdConsensus","Running","Stable","V2Dir","Valid")
 col.type<-c(rep("character",4),"integer","character",rep("integer",12))
 
@@ -91,7 +98,7 @@ for(year in seq(2008,2017)){
   num.obs[index]<-dim(d)[1]
   num.ips[index]<-length(unique(d$IP))
   names(d)<-header
-  
+
   #set correct data type for inputs
   d$BadExit   <- as.factor(d$BadExit)
   d$Port      <- as.factor(d$Port)
@@ -135,6 +142,9 @@ for(year in seq(2008,2017)){
   positive.variances <-ifelse(is.na(variances),FALSE,variances>0)
   indices<-c(rep(TRUE,7), positive.variances) 
   d<-d[,indices]
+  
+  d$isSybill  <- as.factor(d$IP %in% IPs.Sybill)
+  num.sybills[index] <- length(d$isSybill[d$isSybill]) 
   gc()
   
   msg<-glue("Logistic regression models: ")
