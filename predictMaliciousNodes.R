@@ -429,3 +429,12 @@ for(year in seq(2008,2017)){
   plot(year,num.ips)
   plot(year,num.ips.flag.bad/num.ips)
   #extraordinary peak of IPs with flag "BadExit" in 2012
+  
+  plot(year,num.ips.known.fingerprint/num.ips)
+  plot(year,num.obs/num.obs.known.fingerprint)
+  plot(year,num.obs.known.fingerprint/num.obs)
+  plot(year,num.sybills)
+  plot(year,num.ips.changing.fingerprint/num.ips.known.fingerprint)
+  plot(year,num.ips.changing.fingerprint)
+  plot(year,num.ips.changing.fingerprint/num.ips.known.fingerprint)
+  
