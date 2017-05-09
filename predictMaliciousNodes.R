@@ -144,7 +144,8 @@ for(year in seq(2008,2017)){
   d<-d[,indices]
   
   d$isSybill  <- as.factor(d$IP %in% IPs.Sybill)
-  num.sybills[index] <- length(d$isSybill[d$isSybill]) 
+  index.ip<-which(names(d)=="IP")
+  num.sybills[index] <- length(unique(d[d$isSybill,index.ip])) 
   gc()
   
   msg<-glue("Logistic regression models: ")
@@ -405,7 +406,9 @@ for(year in seq(2008,2017)){
   #total number of ips observed
   num.ips,
   #total number of ips with known fingerprint
-  num.ips.known.fingerprint)
+  num.ips.known.fingerprint,
+  #number of observations of sybills
+  num.sybills)
   
   setwd(dataDir)
   write.table(time.series, "timeSeries.txt", row.names=FALSE, sep=";")
