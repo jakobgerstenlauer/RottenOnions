@@ -39,24 +39,32 @@ with(d, plot(year, num.sybills))
 with(d, plot(year,num.ips.changing.fingerprint/num.ips.known.fingerprint))
 with(d, plot(year,num.ips.changing.fingerprint))
 
-require(reshape2)
-ds<-melt(ds,id="year")
+#scale to view all the different values in one plot
+ds<-as.data.frame(scale(d[,-1]))
+ds<-cbind(year=d$year,ds)
 
-ggplot(ds, aes(x=year, y=value, color=variable)) + 
+#we will use melt from reshape2 to create a better plot
+require(reshape2)
+ds.melt<-melt(ds,id="year")
+
+#function to add new values to the dataframe
+calculate.value<-function(dataframe,operation){
+  temp.dataframe<-NULL
+  temp.dataframe$year<-dataframe$year
+  temp.dataframe$variable<-as.factor(rep(deparse(substitute(operation)),nrow(dataframe)))
+  temp.dataframe$value<-with(dataframe,deparse(substitute(operation)))
+  return(as.data.frame(temp.dataframe))
+}
+
+#finally we row join the values
+ds.melt<-rbind(ds.melt,calculate.value(ds,num.ips.changing.fingerprint/num.ips.known.fingerprint),
+      calculate.value(ds,num.ips.flag.bad/num.ips),
+      calculate.value(ds,num.obs/num.ips),
+      calculate.value(ds,num.obs.known.fingerprint/num.obs))
+
+#and the plot is grouped by variable
+ggplot(ds.melt, aes(x=year, y=value, color=variable)) + 
   geom_line(aes(linetype=variable), size=1) +
   geom_point(aes(shape=variable, size=4)) +
-  scale_linetype_manual(values = c(1,2,1,1,2,1,2)) +
-  scale_shape_manual(values=c(0,1,2,3,4,5,6))
-
-ggplot(ds, aes(x=year)) + 
-  geom_line(aes(y = num.ips, color="num.ips")) +
-  geom_line(aes(y = num.obs, color = "num.obs")) +
-  geom_line(aes(y = num.ips.changing.fingerprint/num.ips.known.fingerprint, color="num.ips.changing.fingerprint/num.ips.known.fingerprint")) +
-  geom_line(aes(y = num.ips.changing.fingerprint, color = "num.ips.changing.fingerprint"))+
-  geom_line(aes(y = num.ips.flag.bad/num.ips, color = "num.ips.flag.bad/num.ips")) +
-  geom_line(aes(y = num.ips.known.fingerprint, color = "num.ips.known.fingerprint")) +
-  geom_line(aes(y = num.obs/num.ips, color = "num.obs/num.ips")) +
-  geom_line(aes(y = num.obs.known.fingerprint/num.obs, color = "num.obs.known.fingerprint/num.obs")) +
-  geom_line(aes(y = num.sybills, color = "num.sybills"))+
-  scale_linetype_manual(values = c(1,2,1,1)) +
-  scale_shape_manual(values=c(0,1,2,3))
+  scale_linetype_manual(values = c(1,2,1,1,2,1,2,3,1,6,7)) +
+  scale_shape_manual(values=c(0,1,2,3,4,5,6,7,8,9,10))
