@@ -263,14 +263,11 @@ for(year in seq(2008,2017)){
       summary(m1.glm)
       sink()  
       
+      #############################################
+      #Aggregate all observations with the same IP
+      #############################################
       #require(lme4)
       #m1.lme <- lme(BadExit ~ Bandwidth + Fast + Guard + HSDir + Stable + V2Dir1 + (1|IP), family= binomial(), data=dx[,-c(1:4,index.Port,index.Version)])
-      
-      fileName<-glue("GLM_FullModel_Summary_",year,".txt")
-      setwd(dataDir)
-      sink(fileName)
-      summary(m1.glm)
-      sink()  
       
       for(predictor in predictors){
         eval(parse(text=glue(
@@ -378,21 +375,21 @@ for(year in seq(2008,2017)){
           logging("The most important variables (var importance > 3%)for the prediction of BadExit IPs:",outputfile=logFile)
           logging(as.character(ri[ri$rel.inf>3 , 1]), outputfile=logFile) 
           
-          d$predictions2<-predict(m2.gbm, d, n.trees=num.trees, type="response")
+          dx$predictions2<-predict(m2.gbm, d, n.trees=num.trees, type="response")
           rm(m2.gbm)
+          
+          suspicious.ports<-sort(with(dx, tapply(predictions2, Port, mean)))
+          rm(dx)
+          n<-length(suspicious.ports)
+          most.suspicious.ports<-suspicious.ports[seq((n-20),n)]
+          
+          logging("The 10 most suspicious ports based on BadExit flags (model results): ",outputfile=logFile) 
+          logging(names(most.suspicious.ports), outputfile=logFile)
         }, error = function(e) {
           
         }, finally = {
           
         })
-        
-        suspicious.ports<-sort(with(dx, tapply(predictions, Port, mean)))
-        rm(dx)
-        n<-length(suspicious.ports)
-        most.suspicious.ports<-suspicious.ports[seq((n-20),n)]
-        
-        logging("The 10 most suspicious ports based on BadExit flags (model results): ",outputfile=logFile) 
-        logging(names(most.suspicious.ports), outputfile=logFile) 
     }
   }
   
