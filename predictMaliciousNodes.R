@@ -156,7 +156,7 @@ for(year in seq(2008,2017)){
         var(as.numeric(x), na.rm = TRUE)
       }
       variances<-as.numeric(lapply(d[,8:18], calculate.variance))
-      positive.variances <-ifelse(is.na(variances),FALSE,variances>0)
+      positive.variances <-ifelse(is.na(variances),FALSE,variances>0.01)
       indices<-c(rep(TRUE,7), positive.variances) 
       d<-d[,indices]
       
