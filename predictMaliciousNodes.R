@@ -13,6 +13,11 @@ uniq.length<-function(x){
   length(unique(x))
 }
 
+#Automatically remove inputs without variance:
+calculate.variance<-function(x){
+  var(as.numeric(x), na.rm = TRUE)
+}
+
 #Read additional data set with IPs belonging to Sybills
 IPs.Sybill <- readLines("IpInfo.txt")
 
@@ -65,7 +70,8 @@ logging<-function(logMessage, outputfile){
 #This parameter determines the maximum sample size of nodes with flag BadExit when running the glm.
 #The total sample sample size is 2 times maxN because we take the same number of observations from the subset of 
 #nodes without the flag.
-maxN<-40000;
+#TODO increase to 40000
+maxN<-10000;
 
 #TODO Set TRUE to run statistical analyses!
 runStats <- TRUE
@@ -158,14 +164,12 @@ for(year in seq(2008,2017)){
   dev.off()
   
   if(runStats){
-    
-    #Automatically remove inputs without variance:
-    calculate.variance<-function(x){
-      var(as.numeric(x), na.rm = TRUE)
-    }
     variances<-as.numeric(lapply(d[,8:18], calculate.variance))
     positive.variances <-ifelse(is.na(variances),FALSE,variances>0.01)
     indices<-c(rep(TRUE,7), positive.variances) 
+    #keep "BadExit"!
+    index.BadExit<-which(names(d)=="BadExit")
+    indices[index.BadExit]<-TRUE
     d<-d[,indices]
     
     predictors<-names(d)[-c(1:4)]
@@ -246,8 +250,21 @@ for(year in seq(2008,2017)){
       bestPredictor <- predictors[1]
       bestAIC<- AIC(glm(BadExit ~ 1, family= binomial(), data=dx))
       
-      #fit the full model
-      m1.glm <- glm(BadExit ~ . , family= binomial(), data=dx[,-c(1:4)])
+      #fit the full model without Version and Port
+      index.Port<-which(names(d)=="Port")
+      index.Version<-which(names(d)=="Version")
+      
+      #m1.glm <- glm(BadExit ~ . , family= binomial(), data=dx[,-c(1:4)])
+      m1.glm <- glm(BadExit ~ . , family= binomial(), data=dx[,-c(1:4,index.Port,index.Version)])
+      
+      fileName<-glue("GLM_FullModel_Summary_",year,".txt")
+      setwd(dataDir)
+      sink(fileName)
+      summary(m1.glm)
+      sink()  
+      
+      #require(lme4)
+      #m1.lme <- lme(BadExit ~ Bandwidth + Fast + Guard + HSDir + Stable + V2Dir1 + (1|IP), family= binomial(), data=dx[,-c(1:4,index.Port,index.Version)])
       
       fileName<-glue("GLM_FullModel_Summary_",year,".txt")
       setwd(dataDir)
