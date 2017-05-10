@@ -154,16 +154,18 @@ for(year in seq(2008,2017)){
   dev.off()
   
   if(runStats){
+    
+    #Automatically remove inputs without variance:
+    calculate.variance<-function(x){
+      var(as.numeric(x), na.rm = TRUE)
+    }
+    variances<-as.numeric(lapply(d[,8:18], calculate.variance))
+    positive.variances <-ifelse(is.na(variances),FALSE,variances>0.01)
+    indices<-c(rep(TRUE,7), positive.variances) 
+    d<-d[,indices]
+    
     #logistic regression of BadExit
     if("BadExit" %in% names(d)){
-      #Automatically remove inputs without variance:
-      calculate.variance<-function(x){
-        var(as.numeric(x), na.rm = TRUE)
-      }
-      variances<-as.numeric(lapply(d[,8:18], calculate.variance))
-      positive.variances <-ifelse(is.na(variances),FALSE,variances>0.01)
-      indices<-c(rep(TRUE,7), positive.variances) 
-      d<-d[,indices]
       
       msg<-glue("Logistic regression models: ")
       logging(msg, outputfile=logFile)
