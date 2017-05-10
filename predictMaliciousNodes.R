@@ -246,6 +246,15 @@ for(year in seq(2008,2017)){
       bestPredictor <- predictors[1]
       bestAIC<- AIC(glm(BadExit ~ 1, family= binomial(), data=dx))
       
+      #fit the full model
+      m1.glm <- glm(BadExit ~ . , family= binomial(), data=dx[,-c(1:4)])
+      
+      fileName<-glue("GLM_FullModel_Summary_",year,".txt")
+      setwd(dataDir)
+      sink(fileName)
+      summary(m1.glm)
+      sink()  
+      
       for(predictor in predictors){
         eval(parse(text=glue(
           "m1.glm <- glm(BadExit ~ ",predictor," , family= binomial(), data=dx)"
