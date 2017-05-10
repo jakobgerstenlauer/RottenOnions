@@ -277,6 +277,60 @@ for(year in seq(2008,2017)){
       sink(fileName)
       summary(m1.glm)
       sink()  
+      
+      #************************************************************************************************
+      #Fit gbm model
+      
+      require("gbm")
+      #check the number of factors of gbm, only 1024 are allowed!
+      pc<-with(d, tapply(IP,Port,uniq.length))
+      port.num.restricted<-length(pc[pc>2]);
+      ports.restricted<-names(pc[pc>2])
+      d$Port <- ifelse(d$Port %in% ports.restricted, ports.restricted, "000")
+      numOfFactors<-length(levels(d$Port))
+      
+      if(numOfFactors>1024){
+        stop("There are more than 1024 factor levels / ports! Thus the influence of the ports has to be ignored.")
+      }
+      
+        tryCatch({
+          m2.gbm <- gbm (BadExit ~ . ,
+                         distribution="bernoulli",
+                         verbose=FALSE,
+                         interaction.depth=3,#6
+                         shrinkage=0.001,#0.001
+                         n.trees = num.trees,#3000
+                         data=d[sampleIndices, names(d)[-c(1:4)]])
+          
+          ri<-summary(m2.gbm, plotit=FALSE)
+          outputFileName<-glue("VariableImportanceBoostedRegressionTrees_BadExit",year,".txt")
+          setwd(dataDir)
+          write.table(ri, file=outputFileName,append=FALSE,col.names=FALSE)
+          
+          logging("The most important variables (var importance > 3%)for the prediction of BadExit IPs:",outputfile=logFile)
+          logging(as.character(ri[ri$rel.inf>3 , 1]), outputfile=logFile) 
+          
+          d$predictions2<-predict(m2.gbm, d, n.trees=num.trees, type="response")
+          rm(m2.gbm)
+        }, error = function(e) {
+          rm(m2.gbm);
+        }, finally = {
+          rm(m2.gbm);
+        })
+        
+        port.observations<-with(d,tapply(predictions2, Port, length))
+        #Let's restrict the analysis to ports with at least 5 observations:
+        ports<-(names(port.observations[port.observations>4]))
+        ports<-ports[!is.na(ports)]
+        dx<-subset(d, Port %in% ports)
+        suspicious.ports<-sort(with(dx, tapply(predictions, Port, mean)))
+        rm(dx)
+        n<-length(suspicious.ports)
+        most.suspicious.ports<-suspicious.ports[seq((n-20),n)]
+        
+        logging("The 10 most suspicious ports based on BadExit flags (model results): ",outputfile=logFile) 
+        logging(names(most.suspicious.ports), outputfile=logFile) 
+      
     }
   }
   
@@ -314,13 +368,6 @@ for(year in seq(2008,2017)){
   dev.off()
   
   if(runStats){
-    require("gbm")
-    #check the number of factors of gbm, only 1024 are allowed!
-    d$Port <- factor(d$Port)
-    numOfFactors<-length(levels(d$Port))
-    if(numOfFactors>1024){
-      stop("There are more than 1024 factor levels / ports! Thus the influence of the ports has to be ignored.")
-    }
     
     #fit the model only for subset of data with data about fingerprint changes
     tryCatch({
@@ -367,48 +414,6 @@ for(year in seq(2008,2017)){
     logging(names(most.suspicious.ports), outputfile=logFile) 
     rm(m1.gbm)
     
-    #************************************************************************************************
-    #if there is no variance in BadExit it is removed!
-    if(exists("d$BadExit")){
-      
-      tryCatch({
-        m2.gbm <- gbm (BadExit ~ . ,
-                       distribution="bernoulli",
-                       verbose=FALSE,
-                       interaction.depth=3,#6
-                       shrinkage=0.001,#0.001
-                       n.trees = num.trees,#3000
-                       data=data=d[sampleIndices, names(d)[-c(1:4)]])
-        
-        ri<-summary(m2.gbm, plotit=FALSE)
-        outputFileName<-glue("VariableImportanceBoostedRegressionTrees_BadExit",year,".txt")
-        setwd(dataDir)
-        write.table(ri, file=outputFileName,append=FALSE,col.names=FALSE)
-        
-        logging("The most important variables (var importance > 3%)for the prediction of BadExit IPs:",outputfile=logFile)
-        logging(as.character(ri[ri$rel.inf>3 , 1]), outputfile=logFile) 
-        
-        d$predictions2<-predict(m2.gbm, d, n.trees=num.trees, type="response")
-        rm(m2.gbm)
-      }, error = function(e) {
-        rm(m2.gbm);
-      }, finally = {
-        rm(m2.gbm);
-      })
-      
-      port.observations<-with(d,tapply(predictions2, Port, length))
-      #Let's restrict the analysis to ports with at least 5 observations:
-      ports<-(names(port.observations[port.observations>4]))
-      ports<-ports[!is.na(ports)]
-      dx<-subset(d, Port %in% ports)
-      suspicious.ports<-sort(with(dx, tapply(predictions, Port, mean)))
-      rm(dx)
-      n<-length(suspicious.ports)
-      most.suspicious.ports<-suspicious.ports[seq((n-20),n)]
-      
-      logging("The 10 most suspicious ports based on BadExit flags (model results): ",outputfile=logFile) 
-      logging(names(most.suspicious.ports), outputfile=logFile) 
-    }
   }
     rm(d);gc();
     index<-index+1;
