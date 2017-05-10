@@ -9,6 +9,10 @@ source("workingDir.R")
 #change to the data directory
 setwd(dataDir)
 
+uniq.length<-function(x){
+  length(unique(x))
+}
+
 #Read additional data set with IPs belonging to Sybills
 IPs.Sybill <- readLines("IpInfo.txt")
 
@@ -164,40 +168,87 @@ for(year in seq(2008,2017)){
     indices<-c(rep(TRUE,7), positive.variances) 
     d<-d[,indices]
     
+    predictors<-names(d)[-c(1:4)]
+    predictors<-predictors[predictors!="BadExit"]
+    #There are problems with these predictors (with the contrasts)
+    predictors<-predictors[predictors!="NoEdConsensus"]
+    predictors<-predictors[predictors!="isSybill"]
+    
+    #take a subsample of the observations which don't have the "BadExit" flag:
+    indicesBad<-which(d$BadExit==1)
+    indicesGood<-which(d$BadExit==0)
+    
+    #I want to have a balanced sample!
+    #Therefore I retain all observations with the flag BadExit,
+    #and I randomly sample the same number of observation from the subset 
+    #of 
+    N<-length(indicesBad)
+    if(N > maxN){
+      N <- maxN;
+      indicesBad<-sample(indicesBad, size = N, replace = FALSE);
+    }
+    samplesGood <- sample(indicesGood, size = N, replace = FALSE);
+    sampleIndices <- sort(c(samplesGood, indicesBad));
+    
+    #create subset for modelling of BadExit flag
+    dx<-d[sampleIndices,]
+    
+    #Repeat: Automatically remove inputs without variance:
+    variances<-as.numeric(lapply(dx[,-(1:6)], calculate.variance))
+    positive.variances <-ifelse(is.na(variances),FALSE,variances>0.01)
+    indices<-c(rep(TRUE,6), positive.variances) 
+    dx<-dx[,indices]
+    
+    #Check factor port
+    pc<-with(dx, tapply(IP,Port,uniq.length))
+    port.num.restricted<-length(pc[pc>2]);
+    ports.restricted<-names(pc[pc>2])
+    dx$Port <- as.factor(ifelse(dx$Port %in% ports.restricted, ports.restricted, "000"))
+    numOfFactors<-length(levels(dx$Port))
+    
+    if(numOfFactors>1024){
+      stop("There are more than 1024 factor levels / ports! Thus the influence of the ports has to be ignored.")
+    }
+    
+    #Check factor version
+    pc<-with(dx, tapply(IP,Version,uniq.length))
+    version.num.restricted<-length(pc[pc>2]);
+    version.restricted<-names(pc[pc>2])
+    dx$Version <- as.factor(ifelse(dx$Version %in% version.restricted, version.restricted, "000"))
+    numOfFactors<-length(levels(dx$Version))
+    
+    if(numOfFactors>1024){
+      stop("There are more than 1024 factor levels / versions!")
+    }
+    
+    predictors<-names(dx)[-c(1:4)]
+    predictors<-predictors[predictors!="BadExit"]
+    #There are problems with these predictors (with the contrasts)
+    predictors<-predictors[predictors!="NoEdConsensus"]
+    predictors<-predictors[predictors!="isSybill"]
+    
+    for(predictor in predictors){
+      #set correct data type for inputs
+      if(mode(predictor)=="character"){
+        eval(parse(text=glue(
+          "dx$",predictor,"<-factor(dx$",predictor,")"
+        )))
+      }
+    }
+    dx$Bandwidth<-as.numeric(dx$Bandwidth)
+    
     #logistic regression of BadExit
-    if("BadExit" %in% names(d)){
+    if("BadExit" %in% names(dx)){
       
       msg<-glue("Logistic regression models: ")
       logging(msg, outputfile=logFile)
       
-      predictors<-names(d)[-c(1:4)]
-      predictors<-predictors[predictors!="BadExit"]
-      #There are problems with these predictors (with the contrasts)
-      predictors<-predictors[predictors!="NoEdConsensus"]
-      predictors<-predictors[predictors!="isSybill"]
-      
-      #take a subsample of the observations which don't have the "BadExit" flag:
-      indicesBad<-which(d$BadExit==1)
-      indicesGood<-which(d$BadExit==0)
-      
-      #I want to have a balanced sample!
-      #Therefore I retain all observations with the flag BadExit,
-      #and I randomly sample the same number of observation from the subset 
-      #of 
-      N<-length(indicesBad)
-      if(N > maxN){
-        N <- maxN;
-        indicesBad<-sample(indicesBad, size = N, replace = FALSE);
-      }
-      samplesGood <- sample(indicesGood, size = N, replace = FALSE);
-      sampleIndices <- sort(c(samplesGood, indicesBad));
-      
       bestPredictor <- predictors[1]
-      bestAIC<- AIC(glm(BadExit ~ 1, family= binomial(), data=d[sampleIndices,]))
+      bestAIC<- AIC(glm(BadExit ~ 1, family= binomial(), data=dx))
       
       for(predictor in predictors){
         eval(parse(text=glue(
-          "m1.glm <- glm(BadExit ~ ",predictor," , family= binomial(), data=d[sampleIndices,])"
+          "m1.glm <- glm(BadExit ~ ",predictor," , family= binomial(), data=dx)"
         )))
         aic<-AIC(m1.glm)
         msg<-glue(predictor," : AIC:",aic)
@@ -216,7 +267,7 @@ for(year in seq(2008,2017)){
       #Round 2
       for(predictor in predictors){
         eval(parse(text=glue(
-          "m1.glm <- glm(BadExit ~ ",FirstPredictor," + ",predictor," , family= binomial(), data=d[sampleIndices,])"
+          "m1.glm <- glm(BadExit ~ ",FirstPredictor," + ",predictor," , family= binomial(), data=dx)"
         )))
         aic<-AIC(m1.glm)
         msg<-glue(predictor," : AIC:",aic)
@@ -236,7 +287,7 @@ for(year in seq(2008,2017)){
       #Round 3
       for(predictor in predictors){
         eval(parse(text=glue(
-          "m1.glm <- glm(BadExit ~ ",FirstPredictor," + ",SecondPredictor," +",predictor," , family= binomial(), data=d[sampleIndices,])"
+          "m1.glm <- glm(BadExit ~ ",FirstPredictor," + ",SecondPredictor," +",predictor," , family= binomial(), data=dx)"
         )))
         aic<-AIC(m1.glm)
         msg<-glue(predictor," : AIC:",aic)
@@ -256,7 +307,7 @@ for(year in seq(2008,2017)){
       #Round 4
       for(predictor in predictors){
         eval(parse(text=glue(
-          "m1.glm <- glm(BadExit ~ ",FirstPredictor," + ",SecondPredictor," + ",ThirdPredictor," +",predictor," , family= binomial(), data=d[sampleIndices,])"
+          "m1.glm <- glm(BadExit ~ ",FirstPredictor," + ",SecondPredictor," + ",ThirdPredictor," +",predictor," , family= binomial(), data=dx)"
         )))
         aic<-AIC(m1.glm)
         msg<-glue(predictor," : AIC:",aic)
@@ -270,7 +321,7 @@ for(year in seq(2008,2017)){
       #Write final model with four predictors to text output file:
       FourthPredictor<-bestPredictor
       eval(parse(text=glue(
-        "m1.glm <- glm(BadExit ~ ",FirstPredictor," + ",SecondPredictor," + ",ThirdPredictor," +",FourthPredictor," , family= binomial(), data=d[sampleIndices,])"
+        "m1.glm <- glm(BadExit ~ ",FirstPredictor," + ",SecondPredictor," + ",ThirdPredictor," +",FourthPredictor," , family= binomial(), data=dx)"
       )))
       fileName<-glue("ModelSummary_",year,".txt")
       setwd(dataDir)
@@ -282,16 +333,7 @@ for(year in seq(2008,2017)){
       #Fit gbm model
       
       require("gbm")
-      #check the number of factors of gbm, only 1024 are allowed!
-      pc<-with(d, tapply(IP,Port,uniq.length))
-      port.num.restricted<-length(pc[pc>2]);
-      ports.restricted<-names(pc[pc>2])
-      d$Port <- ifelse(d$Port %in% ports.restricted, ports.restricted, "000")
-      numOfFactors<-length(levels(d$Port))
       
-      if(numOfFactors>1024){
-        stop("There are more than 1024 factor levels / ports! Thus the influence of the ports has to be ignored.")
-      }
       
         tryCatch({
           m2.gbm <- gbm (BadExit ~ . ,
@@ -300,7 +342,7 @@ for(year in seq(2008,2017)){
                          interaction.depth=3,#6
                          shrinkage=0.001,#0.001
                          n.trees = num.trees,#3000
-                         data=d[sampleIndices, names(d)[-c(1:4)]])
+                         data=dx)
           
           ri<-summary(m2.gbm, plotit=FALSE)
           outputFileName<-glue("VariableImportanceBoostedRegressionTrees_BadExit",year,".txt")
@@ -313,16 +355,11 @@ for(year in seq(2008,2017)){
           d$predictions2<-predict(m2.gbm, d, n.trees=num.trees, type="response")
           rm(m2.gbm)
         }, error = function(e) {
-          rm(m2.gbm);
+          
         }, finally = {
-          rm(m2.gbm);
+          
         })
         
-        port.observations<-with(d,tapply(predictions2, Port, length))
-        #Let's restrict the analysis to ports with at least 5 observations:
-        ports<-(names(port.observations[port.observations>4]))
-        ports<-ports[!is.na(ports)]
-        dx<-subset(d, Port %in% ports)
         suspicious.ports<-sort(with(dx, tapply(predictions, Port, mean)))
         rm(dx)
         n<-length(suspicious.ports)
@@ -330,7 +367,6 @@ for(year in seq(2008,2017)){
         
         logging("The 10 most suspicious ports based on BadExit flags (model results): ",outputfile=logFile) 
         logging(names(most.suspicious.ports), outputfile=logFile) 
-      
     }
   }
   
