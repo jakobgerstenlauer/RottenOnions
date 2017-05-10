@@ -44,6 +44,7 @@ ds<-as.data.frame(scale(d[,-1]))
 ds<-cbind(year=d$year,ds)
 
 #we will use melt from reshape2 to create a better plot
+require(ggplot2)
 require(reshape2)
 ds.melt<-melt(ds,id="year")
 
@@ -62,9 +63,12 @@ ds.melt<-rbind(ds.melt,calculate.value(ds,num.ips.changing.fingerprint/num.ips.k
       calculate.value(ds,num.obs/num.ips),
       calculate.value(ds,num.obs.known.fingerprint/num.obs))
 
+#drop values that are not needed in plot
+ds.reduced<-(droplevels( ds.melt[-which(ds.melt$variable %in% c("num.ips.flag.bad","num.obs","num.ips","num.obs.known.fingerprint")), ] ))
+
 #and the plot is grouped by variable
-ggplot(ds.melt, aes(x=year, y=value, color=variable)) + 
+ggplot(ds.reduced, aes(x=year, y=value, color=variable)) + 
   geom_line(aes(linetype=variable), size=1) +
   geom_point(aes(shape=variable, size=4)) +
-  scale_linetype_manual(values = c(1,2,1,1,2,1,2,3,1,6,7)) +
-  scale_shape_manual(values=c(0,1,2,3,4,5,6,7,8,9,10))
+  scale_linetype_manual(values =sample(1:10,nlevels(ds.reduced$variable),replace=T)) +
+  scale_shape_manual(values=sample(1:10,nlevels(ds.reduced$variable),replace=T)) 
