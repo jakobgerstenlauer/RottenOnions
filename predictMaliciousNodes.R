@@ -378,7 +378,7 @@ for(year in seq(2008,2017)){
                        interaction.depth=3,#6
                        shrinkage=0.001,#0.001
                        n.trees = num.trees,#3000
-                       data=d[,names(d)[-c(1:4)]])
+                       data=data=d[sampleIndices, names(d)[-c(1:4)]])
         
         ri<-summary(m2.gbm, plotit=FALSE)
         outputFileName<-glue("VariableImportanceBoostedRegressionTrees_BadExit",year,".txt")
