@@ -58,6 +58,11 @@ logging<-function(logMessage, outputfile){
   setwd(oldPath)
 }
 
+#This parameter determines the maximum sample size of nodes with flag BadExit when running the glm.
+#The total sample sample size is 2 times maxN because we take the same number of observations from the subset of 
+#nodes without the flag.
+maxN<-40000;
+
 #TODO Set TRUE to run statistical analyses!
 runStats <- TRUE
 
@@ -178,8 +183,8 @@ for(year in seq(2008,2017)){
       #and I randomly sample the same number of observation from the subset 
       #of 
       N<-length(indicesBad)
-      if(N > 20000){
-        N <- 20000;
+      if(N > maxN){
+        N <- maxN;
         indicesBad<-sample(indicesBad, size = N, replace = FALSE);
       }
       samplesGood <- sample(indicesGood, size = N, replace = FALSE);
@@ -371,7 +376,7 @@ for(year in seq(2008,2017)){
                        interaction.depth=3,#6
                        shrinkage=0.001,#0.001
                        n.trees = num.trees,#3000
-                       data=d[1,names(d)[-c(1:4)]])
+                       data=d[,names(d)[-c(1:4)]])
         
         ri<-summary(m2.gbm, plotit=FALSE)
         outputFileName<-glue("VariableImportanceBoostedRegressionTrees_BadExit",year,".txt")
