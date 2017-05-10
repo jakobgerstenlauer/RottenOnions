@@ -52,7 +52,7 @@ calculate.value<-function(dataframe,operation){
   temp.dataframe<-NULL
   temp.dataframe$year<-dataframe$year
   temp.dataframe$variable<-as.factor(rep(deparse(substitute(operation)),nrow(dataframe)))
-  temp.dataframe$value<-with(dataframe,deparse(substitute(operation)))
+  temp.dataframe$value<-eval(parse(text=glue("with(",deparse(substitute(dataframe)),",",deparse(substitute(operation)),")")))#with(dataframe,operation)
   return(as.data.frame(temp.dataframe))
 }
 
