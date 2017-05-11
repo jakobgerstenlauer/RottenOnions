@@ -14,10 +14,10 @@ calculate.variance<-function(x){
   var(as.numeric(x), na.rm = TRUE)
 }
 
-maxN<-30000
+maxN<-50000
 
 #TODO Increase after first test run!
-num.trees <- 1000
+num.trees <- 5000
 
 #/data$ head AggregatedDataSet2008.txt 
 #"113.128.138.3" FALSE "0" "113.128.138.3" 14.6153846153846 "9001" "0.2.0.32" "0" "1" "0" "0" "0" "0" "1" "0" "0" "1" 13
@@ -73,7 +73,7 @@ for(year in seq(2009,2017)){
   indicesBad<-which(d$BadExit==TRUE)
   indicesGood<-which(d$BadExit==FALSE)
     
-  if(indicesBad > 1000){
+  if(length(indicesBad) > 500){
     
   #I want to have a balanced sample!
   #Therefore I retain all observations with the flag BadExit,
