@@ -200,3 +200,62 @@ echo "Succesfully tagged $COUNTER countries"
 rm temp.txt
 ```
 	
+Then we compare the information of the Ip list from Sybil with the list obtained from the Logs of all the available years
+```bash
+#!/bin/bash
+cwd=$(pwd)
+COUNTER=0
+
+# a function to show progress and not get desperate, taken from https://gist.github.com/eyecatchup/c74cbb6f8cea6cb228bf
+function progress () {
+    s=0.5;
+    f=0.25;
+    echo -ne "\r\n";
+    while true; do
+           sleep $f && s=`echo ${s} + ${f} + ${f} | bc` && echo -ne "\r\t[                ] Elapsed: ${s} secs." \
+        && sleep $f && s=`echo ${s} + ${f} + ${f} | bc` && echo -ne "\r\t[>               ] Elapsed: ${s} secs." \
+        && sleep $f && s=`echo ${s} + ${f} + ${f} | bc` && echo -ne "\r\t[-->             ] Elapsed: ${s} secs." \
+        && sleep $f && s=`echo ${s} + ${f} + ${f} | bc` && echo -ne "\r\t[--->            ] Elapsed: ${s} secs." \
+        && sleep $f && s=`echo ${s} + ${f} + ${f} | bc` && echo -ne "\r\t[---->           ] Elapsed: ${s} secs." \
+        && sleep $f && s=`echo ${s} + ${f} + ${f} | bc` && echo -ne "\r\t[----->          ] Elapsed: ${s} secs." \
+        && sleep $f && s=`echo ${s} + ${f} + ${f} | bc` && echo -ne "\r\t[------>         ] Elapsed: ${s} secs." \
+        && sleep $f && s=`echo ${s} + ${f} + ${f} | bc` && echo -ne "\r\t[------->        ] Elapsed: ${s} secs." \
+        && sleep $f && s=`echo ${s} + ${f} + ${f} | bc` && echo -ne "\r\t[-------->       ] Elapsed: ${s} secs." \
+        && sleep $f && s=`echo ${s} + ${f} + ${f} | bc` && echo -ne "\r\t[--------->      ] Elapsed: ${s} secs." \
+        && sleep $f && s=`echo ${s} + ${f} + ${f} | bc` && echo -ne "\r\t[---------->     ] Elapsed: ${s} secs." \
+        && sleep $f && s=`echo ${s} + ${f} + ${f} | bc` && echo -ne "\r\t[----------->    ] Elapsed: ${s} secs." \
+        && sleep $f && s=`echo ${s} + ${f} + ${f} | bc` && echo -ne "\r\t[------------>   ] Elapsed: ${s} secs." \
+        && sleep $f && s=`echo ${s} + ${f} + ${f} | bc` && echo -ne "\r\t[------------->  ] Elapsed: ${s} secs." \
+        && sleep $f && s=`echo ${s} + ${f} + ${f} | bc` && echo -ne "\r\t[--------------> ] Elapsed: ${s} secs.";
+           sleep $f && s=`echo ${s} + ${f} + ${f} | bc` && echo -ne "\r\t[--------------->] Elapsed: ${s} secs.";
+    done;
+}
+
+#getting into each LogInfo txt archive
+while true; do progress; done &
+    echo "Creating list of consolidated Ips, this will take a while"
+    for F in LogInfo/*; do
+        awk -F ';' '{print $4}' $F >> temp.txt
+    done
+kill $!; trap 'kill $!' SIGTERM
+echo
+
+# gets the unique values of the archive to relieve processing space and time
+while true; do progress; done &
+    echo "Removing repeated Ips from the list, this may take a while"
+    sort -n temp.txt | uniq > uniqueIps.txt
+kill $!; trap 'kill $!' SIGTERM
+echo
+
+# processing two files in awk, taken from http://stackoverflow.com/questions/22100384/awk-to-compare-two-files
+while true; do progress; done &
+    echo "Checking for LogInfo Ips in SybilIpList, this may take a while"
+    awk 'FNR==NR {a[$1]; next} $1 in a' uniqueIps.txt SybillIpList.txt >> IPSybilLogInfo.txt
+kill $!; trap 'kill $!' SIGTERM
+echo
+
+# cleaning up the house
+echo "Cleaning up the house...."
+rm temp.txt
+rm uniqueIps.txt
+```
