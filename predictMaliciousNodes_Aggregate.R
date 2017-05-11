@@ -65,6 +65,12 @@ for(year in seq(2008,2017)){
     Valid,
     num.observations)
     
+  #
+  # Error in data.frame(BadExit, isSybill, IP, Bandwidth, Port, Version, Authority,  : 
+  #                       arguments imply differing number of rows: 110128, 342638
+  #     
+  #year: 2017
+  
   outputFileName<-glue("AggregatedDataSet",year,".txt")
   setwd(dataDir)
   write.table(d.aggregated, file=outputFileName,append=FALSE,col.names=FALSE)

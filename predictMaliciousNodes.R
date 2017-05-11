@@ -19,7 +19,7 @@ calculate.variance<-function(x){
 }
 
 #Read additional data set with IPs belonging to Sybills
-IPs.Sybill <- readLines("IpInfo.txt")
+IPs.Sybill <- readLines("SybillIpList.txt")
 
 #Read additional data set describing how often the server has changed his fingerprint:
 lines<-readLines("CountFingerprints.txt")
@@ -74,10 +74,10 @@ logging<-function(logMessage, outputfile){
 maxN<-10000;
 
 #TODO Set TRUE to run statistical analyses!
-runStats <- TRUE
+runStats <- FALSE
 
 #TODO Increase after first test run!
-num.trees <- 1000
+num.trees <- 300
 
 #set up a new data set that collects key infos for time series from 2017 to 2018
 n <- length(seq(2008,2017))
@@ -247,8 +247,10 @@ for(year in seq(2008,2017)){
       msg<-glue("Logistic regression models: ")
       logging(msg, outputfile=logFile)
       
-      bestPredictor <- predictors[1]
-      bestAIC<- AIC(glm(BadExit ~ 1, family= binomial(), data=dx))
+      predictors<-names(d)[-c(1:4)]
+      predictors<-predictors[predictors!="BadExit"]
+      #There is a problem with this predictor (with the contrasts)
+      predictors<-predictors[predictors!="NoEdConsensus"]
       
       #fit the full model without Version and Port
       index.Port<-which(names(d)=="Port")
@@ -476,24 +478,38 @@ for(year in seq(2008,2017)){
   }
     rm(d);gc();
     index<-index+1;
-  }
+}
 
-  time.series<-data.frame(
-  year<-seq(2008,2017),
-  #total number of ips flaged as bad exit
-  num.ips.flag.bad,
-  #total number of ips with more than one fingerprint
-  num.ips.changing.fingerprint,
-  #total number of observations
-  num.obs,
-  #total number of observations with fingerprint info
-  num.obs.known.fingerprint,
-  #total number of ips observed
-  num.ips,
-  #total number of ips with known fingerprint
-  num.ips.known.fingerprint,
-  #number of observations of sybills
-  num.sybills)
+time.series<-data.frame(
+year<-seq(2008,2017),
+#total number of ips flaged as bad exit
+num.ips.flag.bad,
+#total number of ips with more than one fingerprint
+num.ips.changing.fingerprint,
+#total number of observations
+num.obs,
+#total number of observations with fingerprint info
+ num.obs.known.fingerprint,
+#total number of ips observed
+num.ips,
+#total number of ips with known fingerprint
+num.ips.known.fingerprint,
+#number of observations of sybills
+num.sybills)
   
-  setwd(dataDir)
-  write.table(time.series, "timeSeries.txt", row.names=FALSE, sep=";")
+setwd(dataDir)
+write.table(time.series, "timeSeries.txt", row.names=FALSE, sep=";")
+  
+plot(year,num.ips)
+plot(year,num.ips.flag.bad/num.ips)
+#extraordinary peak of IPs with flag "BadExit" in 2012
+  
+plot(year,num.ips.known.fingerprint/num.ips)
+plot(year,num.obs/num.obs.known.fingerprint)
+plot(year,num.obs.known.fingerprint/num.obs)
+plot(year,num.sybills)
+plot(year,num.ips.changing.fingerprint/num.ips.known.fingerprint)
+plot(year,num.ips.changing.fingerprint)
+plot(year,num.ips.changing.fingerprint/num.ips.known.fingerprint)
+  
+
