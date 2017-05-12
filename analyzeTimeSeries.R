@@ -20,18 +20,25 @@ with(d, plot(year,num.ips))
 
 setwd(plotDir)
 
+jpeg("ObservationsIPs.jpeg")
+with(d,plot(year,num.obs/num.ips, 
+            pch="+",type="b",
+            xlab="Year",
+            ylab="Number of observations / IP"))
+dev.off()
+
 jpeg("BadExitProportion.jpeg")
 with(d,plot(year,num.ips.flag.bad/num.ips, 
             pch="+",type="b",
             xlab="Year",
-            ylab="Ratio of Nodes with \"BadExit\" Flag"))
+            ylab="Ratio of nodes with \"BadExit\" flag"))
 dev.off()
 
 jpeg("NumSybils.jpeg")
 with(d,plot(year,num.sybills, 
             pch="+",type="b",
             xlab="Year",
-            ylab="Number of Sybils"))
+            ylab="Number of sybils"))
 dev.off()
 
 #Extraordinary peak of IPs with flag "BadExit" in 2012
