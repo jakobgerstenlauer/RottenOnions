@@ -141,7 +141,6 @@ for(year in seq(2009,2017)){
       
   setwd(dataDir)
   fileName<-glue("GLM_FullModel_Summary_Aggregated_",year,".txt")
-  setwd(dataDir)
   sink(fileName)
   summary(m1.glm)
   sink()  
