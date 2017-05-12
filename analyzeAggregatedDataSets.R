@@ -138,12 +138,17 @@ for(year in seq(2009,2017)){
   index.isSybill<-which(names(d)=="isSybill")
   
   m1.glm <- glm(BadExit ~ . , family= binomial(), data=dx[,-c(index.Port,index.Version,index.IP,index.isSybill)])
-      
+  
   setwd(dataDir)
   fileName<-glue("GLM_FullModel_Summary_Aggregated_",year,".txt")
   sink(fileName)
   print(summary(m1.glm))
   sink()  
+  
+  coefficients <- m1.glm$coefficients     
+  null.deviance <- m1.glm$null.deviance
+  deviance <- m1.glm$deviance 
+  p.values <- summary(m1.glm)$coefficients[,4]
   
   #************************************************************************************************
   #Fit gbm model
@@ -162,37 +167,3 @@ for(year in seq(2009,2017)){
     write.table(ri, file=outputFileName,append=FALSE,col.names=FALSE)
   }
 }
-
-setwd(dataDir)
-
-# export results to table
-require(xtable)
-check.significance<-function(x){
-  return(ifelse(x!="",ifelse(x<0.05,"+","-"),"N/A"))
-}
-
-rownames<-c("Year", "Bandwidth", "Fast","HSDir","V2Dir","Num Observations","Null Deviance","Residual Deviance","R2")
-
-d.out<-NULL
-d.out<-cbind(d.out,rownames)
-for(year in seq(2009,2017)){
-  fileName<-glue("GLM_FullModel_Summary_Aggregated_",year,".txt")
-  if(exists(fileName)){
-    d<-read.table(fileName, header=FALSE, sep=" ",stringsAsFactors=FALSE,comment.char="")
-    names(d)<-header
-    row.out<-c(year,check.significance(d$Bandwidth),
-               check.significance(d$Fast),
-               check.significance(d$HSDir),
-               check.significance(d$V2Dir),
-               check.significance(d$NumObservations),
-               d$NullDeviance,
-               d$ResidualDeviance,d$R2)
-    cbind(d.out,row.out)
-  }else{
-    cbind(d.out,row.out)
-  }
-}
-
-xtable(d.out)
-
-  
