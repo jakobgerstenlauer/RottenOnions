@@ -12,7 +12,7 @@ glue<-function(...){paste(...,sep="")}
 #read the local paths to different directories from an external file
 source("workingDir.R")
 #change to the data directory
-setwd(codeDir)
+setwd(dataDir)
 
 d<-read.table("timeSeries.txt", header=TRUE,sep=";")
 names(d)[1]<-"year"
