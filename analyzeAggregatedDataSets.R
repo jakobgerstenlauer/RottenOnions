@@ -163,6 +163,8 @@ for(year in seq(2009,2017)){
   }
 }
 
+setwd(dataDir)
+
 # export results to table
 require(xtable)
 check.significance<-function(x){
@@ -170,19 +172,25 @@ check.significance<-function(x){
 }
 
 rownames<-c("Year", "Bandwidth", "Fast","HSDir","V2Dir","Num Observations","Null Deviance","Residual Deviance","R2")
+
+d.out<-NULL
 d.out<-cbind(d.out,rownames)
 for(year in seq(2009,2017)){
   fileName<-glue("GLM_FullModel_Summary_Aggregated_",year,".txt")
-  d<-read.table(fileName, header=FALSE, sep=" ",stringsAsFactors=FALSE,comment.char="")
-  names(d)<-header
-  row.out<-c(year,check.significance(d$Bandwidth),
-             check.significance(d$Fast),
-             check.significance(d$HSDir),
-             check.significance(d$V2Dir),
-             check.significance(d$NumObservations),
-             d$NullDeviance,
-             d$ResidualDeviance,d$R2)
-  cbind(d.out,row.out)
+  if(exists(fileName)){
+    d<-read.table(fileName, header=FALSE, sep=" ",stringsAsFactors=FALSE,comment.char="")
+    names(d)<-header
+    row.out<-c(year,check.significance(d$Bandwidth),
+               check.significance(d$Fast),
+               check.significance(d$HSDir),
+               check.significance(d$V2Dir),
+               check.significance(d$NumObservations),
+               d$NullDeviance,
+               d$ResidualDeviance,d$R2)
+    cbind(d.out,row.out)
+  }else{
+    cbind(d.out,row.out)
+  }
 }
 
 xtable(d.out)
