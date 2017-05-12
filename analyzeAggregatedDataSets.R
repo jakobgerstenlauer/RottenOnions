@@ -69,6 +69,10 @@ for(year in seq(2009,2017)){
   d$V2Dir   <- as.factor(d$V2Dir)
   d$Valid   <- as.factor(d$Valid)
   
+  index.Exit<-which(names(d)=="Exit")
+  #only select nodes which are configured as exit nodes
+  d<-d[d$Exit==1,]
+  
   #take a subsample of the observations which don't have the "BadExit" flag:
   indicesBad<-which(d$BadExit==TRUE)
   indicesGood<-which(d$BadExit==FALSE)
