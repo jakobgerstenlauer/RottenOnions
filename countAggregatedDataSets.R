@@ -25,7 +25,7 @@ count <- as.numeric(sapply(lines,getFirstColumn))
 IP <- as.character(sapply(lines,getSecondColumn))
 d.fp<-data.frame(count,IP)
 
-years<-seq(2009,2017)
+years<-seq(2008,2017)
 N<-length(years)
 num.obs<-rep(-1,N)
 num.ips<-rep(-1,N)
@@ -100,8 +100,11 @@ for(year in years){
 
 setwd(dataDir)
 write.table(
-  data.frame(num.obs,
+  data.frame(
+            years,
+            num.obs,
             num.ips,
+            num.ips.flag.bad,
             num.sybills,
             num.obs.fingerprint), 
   "timeSeries.txt",
