@@ -142,7 +142,7 @@ for(year in seq(2009,2017)){
   setwd(dataDir)
   fileName<-glue("GLM_FullModel_Summary_Aggregated_",year,".txt")
   sink(fileName)
-  summary(m1.glm)
+  print(summary(m1.glm))
   sink()  
   
   #************************************************************************************************
@@ -155,7 +155,7 @@ for(year in seq(2009,2017)){
                    shrinkage=0.001,#0.001
                    n.trees = num.trees,#3000
                    data=dx[,-c(index.IP,index.isSybill)])
-    
+
     ri<-summary(m2.gbm, plotit=FALSE)
     outputFileName<-glue("VariableImportanceBoostedRegressionTrees_BadExit_agg_",year,".txt")
     setwd(dataDir)
