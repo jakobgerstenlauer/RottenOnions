@@ -138,12 +138,17 @@ for(year in seq(2009,2017)){
   index.isSybill<-which(names(d)=="isSybill")
   
   m1.glm <- glm(BadExit ~ . , family= binomial(), data=dx[,-c(index.Port,index.Version,index.IP,index.isSybill)])
-      
+  
   setwd(dataDir)
   fileName<-glue("GLM_FullModel_Summary_Aggregated_",year,".txt")
   sink(fileName)
   print(summary(m1.glm))
   sink()  
+  
+  coefficients <- m1.glm$coefficients     
+  null.deviance <- m1.glm$null.deviance
+  deviance <- m1.glm$deviance 
+  p.values <- summary(m1.glm)$coefficients[,4]
   
   #************************************************************************************************
   #Fit gbm model
@@ -161,8 +166,12 @@ for(year in seq(2009,2017)){
     setwd(dataDir)
     write.table(ri, file=outputFileName,append=FALSE,col.names=FALSE)
   }
+<<<<<<< HEAD
 }
 
 
 
   
+=======
+}
+>>>>>>> 26256e356e22b5d1f49571286c5d34eaf34ef065
