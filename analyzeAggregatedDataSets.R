@@ -15,8 +15,7 @@ calculate.variance<-function(x){
 }
 
 maxN<-50000
-
-#TODO Increase after first test run!
+min.num.bad.exit<- 100 
 num.trees <- 5000
 
 #/data$ head AggregatedDataSet2008.txt 
@@ -64,28 +63,34 @@ glm.create.frame<-function(inputmodel,year){
   z[6]=check.significance(p.values["Stable1"])
   z[7]=check.significance(p.values["V2Dir1"])        
   z[8]=check.significance(p.values["num.observations"])
+<<<<<<< HEAD
   z[9]=inputmodel$null.deviance
   z[10]=inputmodel$deviance 
   z[11]=glue((as.character(round(1-(inputmodel$deviance/inputmodel$null.deviance),3))*100),"%")
+=======
+  z[9]=round(inputmodel$null.deviance,1)
+  z[10]=round(inputmodel$deviance,1) 
+  z[11]=100 * round(1-(inputmodel$deviance/inputmodel$null.deviance),3)
+>>>>>>> 4757ea2fc55b07fc7e167924d5672817801c03ff
   return(z)
 }
 
-gbm.create.frame<-function(inputmodel,year){
+gbm.create.frame<-function(inputmodel,year,digits){
   z<-c(year)
-  z[2]=round(inputmodel["Fast",]$rel.inf,3)
-  z[3]=round(inputmodel["num.observations",]$rel.inf,3)
-  z[4]=round(inputmodel["Bandwidth",]$rel.inf,3)
-  z[5]=round(inputmodel["V2Dir",]$rel.inf,3)
-  z[6]=round(inputmodel["Port",]$rel.inf,3)
-  z[7]=round(inputmodel["Version",]$rel.inf,3)      
-  z[8]=round(inputmodel["Guard",]$rel.inf,3)
-  z[9]=round(inputmodel["Stable",]$rel.inf,3)
-  z[10]=round(inputmodel["HSDir",]$rel.inf,3)
+  z[2]=round(inputmodel["Fast",]$rel.inf,digits)
+  z[3]=round(inputmodel["num.observations",]$rel.inf,digits)
+  z[4]=round(inputmodel["Bandwidth",]$rel.inf,digits)
+  z[5]=round(inputmodel["V2Dir",]$rel.inf,digits)
+  z[6]=round(inputmodel["Port",]$rel.inf,digits)
+  z[7]=round(inputmodel["Version",]$rel.inf,digits)      
+  z[8]=round(inputmodel["Guard",]$rel.inf,digits)
+  z[9]=round(inputmodel["Stable",]$rel.inf,digits)
+  z[10]=round(inputmodel["HSDir",]$rel.inf,digits)
   return(z)
 }
 
 #Now let's run this analysis for all years:
-for(year in seq(2009,2017)){
+for(year in seq(2008,2017)){
 
   setwd(dataDir)
   fileName<-glue("AggregatedDataSet",year,".txt")
@@ -120,8 +125,8 @@ for(year in seq(2009,2017)){
   indicesBad<-which(d$BadExit==TRUE)
   indicesGood<-which(d$BadExit==FALSE)
     
-  if(length(indicesBad) > 500){
-    
+  if(length(indicesBad) > min.num.bad.exit){
+
   #I want to have a balanced sample!
   #Therefore I retain all observations with the flag BadExit,
   #and I randomly sample the same number of observation from the subset 
@@ -202,11 +207,12 @@ for(year in seq(2009,2017)){
                    data=dx[,-c(index.IP,index.isSybill)])
 
     ri<-summary(m2.gbm, plotit=FALSE)
+    
     outputFileName<-glue("VariableImportanceBoostedRegressionTrees_BadExit_agg_",year,".txt")
     setwd(dataDir)
     write.table(ri, file=outputFileName,append=FALSE,col.names=FALSE)
     
-    gbm.d<-cbind(gbm.d,gbm.create.frame(summary(m2.gbm),year))
+    gbm.d<-cbind(gbm.d,gbm.create.frame(summary(m2.gbm, plotit=FALSE),year,1))
   }
 }
 
