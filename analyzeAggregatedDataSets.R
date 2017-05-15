@@ -120,7 +120,7 @@ for(year in seq(2008,2017)){
   indicesGood<-which(d$BadExit==FALSE)
     
   if(length(indicesBad) > min.num.bad.exit){
-    
+
   #I want to have a balanced sample!
   #Therefore I retain all observations with the flag BadExit,
   #and I randomly sample the same number of observation from the subset 
