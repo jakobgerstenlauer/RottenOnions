@@ -85,7 +85,7 @@ gbm.create.frame<-function(inputmodel,year){
 }
 
 #Now let's run this analysis for all years:
-for(year in seq(2009,2017)){
+for(year in seq(2008,2017)){
 
   setwd(dataDir)
   fileName<-glue("AggregatedDataSet",year,".txt")
