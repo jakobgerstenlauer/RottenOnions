@@ -66,21 +66,21 @@ glm.create.frame<-function(inputmodel,year){
   z[8]=check.significance(p.values["num.observations"])
   z[9]=inputmodel$null.deviance
   z[10]=inputmodel$deviance 
-  z[11]=round(1-(inputmodel$deviance/inputmodel$null.deviance),3)
+  z[11]=100 * round(1-(inputmodel$deviance/inputmodel$null.deviance),3)
   return(z)
 }
 
-gbm.create.frame<-function(inputmodel,year){
+gbm.create.frame<-function(inputmodel,year,digits){
   z<-c(year)
-  z[2]=round(inputmodel["Fast",]$rel.inf,3)
-  z[3]=round(inputmodel["num.observations",]$rel.inf,3)
-  z[4]=round(inputmodel["Bandwidth",]$rel.inf,3)
-  z[5]=round(inputmodel["V2Dir",]$rel.inf,3)
-  z[6]=round(inputmodel["Port",]$rel.inf,3)
-  z[7]=round(inputmodel["Version",]$rel.inf,3)      
-  z[8]=round(inputmodel["Guard",]$rel.inf,3)
-  z[9]=round(inputmodel["Stable",]$rel.inf,3)
-  z[10]=round(inputmodel["HSDir",]$rel.inf,3)
+  z[2]=round(inputmodel["Fast",]$rel.inf,digits)
+  z[3]=round(inputmodel["num.observations",]$rel.inf,digits)
+  z[4]=round(inputmodel["Bandwidth",]$rel.inf,digits)
+  z[5]=round(inputmodel["V2Dir",]$rel.inf,digits)
+  z[6]=round(inputmodel["Port",]$rel.inf,digits)
+  z[7]=round(inputmodel["Version",]$rel.inf,digits)      
+  z[8]=round(inputmodel["Guard",]$rel.inf,digits)
+  z[9]=round(inputmodel["Stable",]$rel.inf,digits)
+  z[10]=round(inputmodel["HSDir",]$rel.inf,digits)
   return(z)
 }
 
@@ -207,7 +207,7 @@ for(year in seq(2008,2017)){
     setwd(dataDir)
     write.table(ri, file=outputFileName,append=FALSE,col.names=FALSE)
     
-    gbm.d<-cbind(gbm.d,gbm.create.frame(summary(m2.gbm),year))
+    gbm.d<-cbind(gbm.d,gbm.create.frame(summary(m2.gbm),year,1))
   }
 }
 
