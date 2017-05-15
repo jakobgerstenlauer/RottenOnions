@@ -206,7 +206,7 @@ for(year in seq(2008,2017)){
     setwd(dataDir)
     write.table(ri, file=outputFileName,append=FALSE,col.names=FALSE)
     
-    gbm.d<-cbind(gbm.d,gbm.create.frame(summary(m2.gbm),year,1))
+    gbm.d<-cbind(gbm.d,gbm.create.frame(summary(m2.gbm, plotit=FALSE),year,1))
   }
 }
 
