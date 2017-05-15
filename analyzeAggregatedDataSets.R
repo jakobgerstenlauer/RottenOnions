@@ -15,8 +15,7 @@ calculate.variance<-function(x){
 }
 
 maxN<-50000
-
-#TODO Increase after first test run!
+nim.num.bad.exit<- 100 
 num.trees <- 5000
 
 #/data$ head AggregatedDataSet2008.txt 
@@ -120,7 +119,7 @@ for(year in seq(2008,2017)){
   indicesBad<-which(d$BadExit==TRUE)
   indicesGood<-which(d$BadExit==FALSE)
     
-  if(length(indicesBad) > 500){
+  if(length(indicesBad) > nim.num.bad.exit){
     
   #I want to have a balanced sample!
   #Therefore I retain all observations with the flag BadExit,
