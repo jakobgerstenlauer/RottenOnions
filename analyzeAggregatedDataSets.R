@@ -41,6 +41,49 @@ header<-c(
   "Valid",
   "num.observations")
 
+# variables to store the matrixes for the final outputs
+glm.d<-NULL
+glm.rownames<-c("Year", "Bandwidth", "Fast","Guard","HSDir","Stable","V2Dir","Num Observations","Null Deviance","Residual Deviance","R2")
+glm.d<-cbind(glm.d,glm.rownames)
+
+gbm.d<-NULL
+gbm.rownames<-c("Year","Fast", "num.observations", "Bandwidth","V2Dir","Port","Version","Guard","Stable","HSDir")
+gbm.d<-cbind(gbm.d,gbm.rownames)
+
+check.significance<-function(x){
+  return(ifelse(x!="",ifelse(x<0.05,"+","-"),"N/A"))
+}
+
+glm.create.frame<-function(inputmodel,year){
+  p.values <- inputmodel$coefficients[,4]
+  z<-c(year)
+  z[2]=check.significance(p.values["Bandwidth"])
+  z[3]=check.significance(p.values["Fast1"])
+  z[4]=check.significance(p.values["Guard1"])
+  z[5]=check.significance(p.values["HSDir1"])
+  z[6]=check.significance(p.values["Stable1"])
+  z[7]=check.significance(p.values["V2Dir1"])        
+  z[8]=check.significance(p.values["num.observations"])
+  z[9]=inputmodel$null.deviance
+  z[10]=inputmodel$deviance 
+  z[11]=round(1-(inputmodel$deviance/inputmodel$null.deviance),3)
+  return(z)
+}
+
+gbm.create.frame<-function(inputmodel,year){
+  z<-c(year)
+  z[2]=round(inputmodel["Fast",]$rel.inf,3)
+  z[3]=round(inputmodel["num.observations",]$rel.inf,3)
+  z[4]=round(inputmodel["Bandwidth",]$rel.inf,3)
+  z[5]=round(inputmodel["V2Dir",]$rel.inf,3)
+  z[6]=round(inputmodel["Port",]$rel.inf,3)
+  z[7]=round(inputmodel["Version",]$rel.inf,3)      
+  z[8]=round(inputmodel["Guard",]$rel.inf,3)
+  z[9]=round(inputmodel["Stable",]$rel.inf,3)
+  z[10]=round(inputmodel["HSDir",]$rel.inf,3)
+  return(z)
+}
+
 #Now let's run this analysis for all years:
 for(year in seq(2009,2017)){
 
@@ -145,10 +188,7 @@ for(year in seq(2009,2017)){
   print(summary(m1.glm))
   sink()  
   
-  coefficients <- m1.glm$coefficients     
-  null.deviance <- m1.glm$null.deviance
-  deviance <- m1.glm$deviance 
-  p.values <- summary(m1.glm)$coefficients[,4]
+  glm.d<-cbind(glm.d,glm.create.frame(summary(m1.glm),year))
   
   #************************************************************************************************
   #Fit gbm model
@@ -166,5 +206,21 @@ for(year in seq(2009,2017)){
     outputFileName<-glue("VariableImportanceBoostedRegressionTrees_BadExit_agg_",year,".txt")
     setwd(dataDir)
     write.table(ri, file=outputFileName,append=FALSE,col.names=FALSE)
+    
+    gbm.d<-cbind(gbm.d,gbm.create.frame(summary(m2.gbm),year))
   }
 }
+
+# save tables to latex file
+require(xtable)
+colnames(glm.d)<- as.character(unlist(glm.d[1,]))
+glm.d<-glm.d[-1,]
+
+colnames(gbm.d)<- as.character(unlist(gbm.d[1,]))
+gbm.d<-gbm.d[-1,]
+
+setwd(dataDir)
+print.xtable(xtable(glm.d), type="latex", file="glmtable.tex")
+print.xtable(xtable(gbm.d), type="latex", file="gbmtable.tex")
+
+#R2 negative? check the formula

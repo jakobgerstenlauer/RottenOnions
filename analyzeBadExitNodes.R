@@ -18,8 +18,8 @@ d <- read.table("BadRelays.txt", sep = ";", header = TRUE)
 
 #TODO Question: What does this function do? I don't see a plot but it is also no storing a plot to a file.
 draw.plot<-function(input.data,type){
-  #require(ggplot2)
-  #require(gridExtra)
+  require(ggplot2)
+  require(gridExtra)
   
   l.data<-length(input.data)
   rounded<-round(sqrt(l.data),0)
@@ -59,7 +59,7 @@ head(arrange(as.data.frame(table(d$Port)),desc(as.data.frame(table(d$Port))$Freq
 # TODO Question: What does this mean in practical terms for our research?
 
 # read file "taggedips.txt" to get how many countries are marked as bad exit relays according from sybil hunter data
-dc<-read.table("taggedips.txt",sep = " ")
+dc<-read.table("SybillIpListCountry.txt",sep = " ")
 colnames(dc) <- c("IP Address","Country")
 freq.countries<-head(arrange(as.data.frame(table(dc$Country)),desc(as.data.frame(table(dc$Country))$Freq)), n = 10)
 print.xtable(xtable(freq.countries), type="latex", file="freq.sybil.countries.tex",caption= "Frequency of countries reported in SybilHunter")
