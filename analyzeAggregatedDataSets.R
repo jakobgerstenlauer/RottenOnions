@@ -63,8 +63,8 @@ glm.create.frame<-function(inputmodel,year){
   z[6]=check.significance(p.values["Stable1"])
   z[7]=check.significance(p.values["V2Dir1"])        
   z[8]=check.significance(p.values["num.observations"])
-  z[9]=inputmodel$null.deviance
-  z[10]=inputmodel$deviance 
+  z[9]=round(inputmodel$null.deviance,1)
+  z[10]=round(inputmodel$deviance,1) 
   z[11]=100 * round(1-(inputmodel$deviance/inputmodel$null.deviance),3)
   return(z)
 }
