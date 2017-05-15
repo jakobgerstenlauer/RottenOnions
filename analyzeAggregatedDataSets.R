@@ -162,6 +162,7 @@ for(year in seq(2009,2017)){
                    data=dx[,-c(index.IP,index.isSybill)])
 
     ri<-summary(m2.gbm, plotit=FALSE)
+    
     outputFileName<-glue("VariableImportanceBoostedRegressionTrees_BadExit_agg_",year,".txt")
     setwd(dataDir)
     write.table(ri, file=outputFileName,append=FALSE,col.names=FALSE)
