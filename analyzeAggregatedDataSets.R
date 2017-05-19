@@ -191,20 +191,23 @@ for(year in seq(2008,2017)){
   
   #************************************************************************************************
   #Fit gbm model
-   require("gbm")
-   m2.gbm <- gbm ((as.numeric(BadExit)-1) ~ . ,
+  require("gbm")
+  m2.gbm <- gbm ((as.numeric(BadExit)-1) ~ . ,
                    distribution="bernoulli",
                    verbose=FALSE,
                    interaction.depth=3,#6
                    shrinkage=0.001,#0.001
                    n.trees = num.trees,#3000
+                   cv.folds=10,
                    data=dx[,-c(index.IP,index.isSybill)])
 
-    ri<-summary(m2.gbm, plotit=FALSE)
-    
-    outputFileName<-glue("VariableImportanceBoostedRegressionTrees_BadExit_agg_",year,".txt")
-    setwd(dataDir)
-    write.table(ri, file=outputFileName,append=FALSE,col.names=FALSE)
+  # check performance using 5-fold cross-validation
+  best.iter <- gbm.perf(m2.gbm, method="cv")
+  ri<-summary(m2.gbm, n.trees=best.iter, plotit=FALSE)
+  
+  outputFileName<-glue("VariableImportanceBoostedRegressionTrees_BadExit_agg_",year,".txt")
+  setwd(dataDir)
+  write.table(ri, file=outputFileName,append=FALSE,col.names=FALSE)
     
     gbm.d<-cbind(gbm.d,gbm.create.frame(summary(m2.gbm, plotit=FALSE),year,1))
   }
