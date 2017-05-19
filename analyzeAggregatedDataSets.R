@@ -63,9 +63,15 @@ glm.create.frame<-function(inputmodel,year){
   z[6]=check.significance(p.values["Stable1"])
   z[7]=check.significance(p.values["V2Dir1"])        
   z[8]=check.significance(p.values["num.observations"])
+<<<<<<< HEAD
+  z[9]=inputmodel$null.deviance
+  z[10]=inputmodel$deviance 
+  z[11]=glue((as.character(round(1-(inputmodel$deviance/inputmodel$null.deviance),3))*100),"%")
+=======
   z[9]=round(inputmodel$null.deviance,1)
   z[10]=round(inputmodel$deviance,1) 
   z[11]=100 * round(1-(inputmodel$deviance/inputmodel$null.deviance),3)
+>>>>>>> 4757ea2fc55b07fc7e167924d5672817801c03ff
   return(z)
 }
 
@@ -217,6 +223,9 @@ for(year in seq(2008,2017)){
 require(xtable)
 colnames(glm.d)<- as.character(unlist(glm.d[1,]))
 glm.d<-glm.d[-1,]
+glm.d[8,c(2:4)]<-round(as.numeric(glm.d[8,c(2:4)]),2)
+glm.d[9,c(2:4)]<-round(as.numeric(glm.d[9,c(2:4)]),2)
+glm.d[10,c(2:4)]<-round(as.numeric(glm.d[10,c(2:4)]),2)
 
 colnames(gbm.d)<- as.character(unlist(gbm.d[1,]))
 gbm.d<-gbm.d[-1,]
