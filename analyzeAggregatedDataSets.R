@@ -63,15 +63,9 @@ glm.create.frame<-function(inputmodel,year){
   z[6]=check.significance(p.values["Stable1"])
   z[7]=check.significance(p.values["V2Dir1"])        
   z[8]=check.significance(p.values["num.observations"])
-<<<<<<< HEAD
-  z[9]=inputmodel$null.deviance
-  z[10]=inputmodel$deviance 
-  z[11]=glue((as.character(round(1-(inputmodel$deviance/inputmodel$null.deviance),3))*100),"%")
-=======
   z[9]=round(inputmodel$null.deviance,1)
   z[10]=round(inputmodel$deviance,1) 
-  z[11]=100 * round(1-(inputmodel$deviance/inputmodel$null.deviance),3)
->>>>>>> 4757ea2fc55b07fc7e167924d5672817801c03ff
+  z[11]=glue((as.character(round(1-(inputmodel$deviance/inputmodel$null.deviance),3))*100),"%")
   return(z)
 }
 
@@ -233,5 +227,3 @@ gbm.d<-gbm.d[-1,]
 setwd(dataDir)
 print.xtable(xtable(glm.d), type="latex", file="glmtable.tex")
 print.xtable(xtable(gbm.d), type="latex", file="gbmtable.tex")
-
-#R2 negative? check the formula
